@@ -72,6 +72,16 @@ generate_speech(url, headers, text, voice)
 
 ### Simple Voice Cloning Request With No Error Checking
 
+```python
+url = 'http://127.0.0.1:5000/process'
+headers = {'key': 'kivsa_ehad',
+           'request-type': 'ADD_USER', 'voice_description': ''}
+file_paths = ['output.mp4']
+files = [('files[]', open(file_path, 'rb')) for file_path in file_paths]
+data = {'voice': 'Julius'}
+requests.post(url, files=files, headers=headers, data=data)
+```
+
 ### Voice Cloning Request With Error Checking
 
 ```python
@@ -102,11 +112,9 @@ def add_user(url, headers, file_paths):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")
 
-# URL of the Flask API
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'kivsa_ehad', 'request-type': 'ADD_USER', 'voice_description': ''}
 file_paths = ['output.mp4']
 
-# Add a new user
 add_user(url, headers, file_paths)
 ```
