@@ -1,4 +1,4 @@
-# Memoize Labs API Documentation
+## Memoize Labs API Documentation
 
 Usage:
 
