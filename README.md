@@ -4,7 +4,7 @@ Usage:
 
 Simple Voice Generation Request:
 
-'''Python
+'''
 import requests
 
 def generate_speech(url, headers, text, voice):
