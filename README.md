@@ -4,7 +4,7 @@
 
 ### Simple Voice Generation Request With No Error Checking:
 
-'''python
+```python
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'kivsa_ehad', 'request-type': 'INPUT'}
 text = "Hello! 你好! Hola! नमस्ते! Bonjour! こんにちは! مرحبا! 안녕하세요! Ciao! Cześć! Привіт! வணக்கம்!"
@@ -15,7 +15,7 @@ response = requests.post(url, headers=headers, data=data)
 with open('speech.mp3', 'wb') as f:
     f.write(response.content)
 print("Speech generated successfully, saved as speech.mp3")
-'''
+```
 
 ### Voice Generation Request With Error Checking:
 
