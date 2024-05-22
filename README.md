@@ -3,6 +3,7 @@
 ## Example Usage:
 
 ### Simple Voice Generation Request With No Error Checking:
+Use at your own risk. This is primarily for understanding the necessary parts to construct the API call. 
 
 ```python
 url = 'http://127.0.0.1:5000/process'
@@ -18,6 +19,7 @@ print("Speech generated successfully, saved as speech.mp3")
 ```
 
 ### Voice Generation Request With Error Checking:
+All necessary error checking implemented and will print the error upon return of the API if necessary. 
 
 ```python
 import requests
