@@ -2,7 +2,7 @@
 
 ## Example Usage:
 
-Simple Voice Generation Request:
+### Simple Voice Generation Request:
 
 ```python
 import requests
