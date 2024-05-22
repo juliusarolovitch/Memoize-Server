@@ -17,7 +17,7 @@ The current implementation has a framework so that API users will not be able to
 
 ## Example Usage:
 
-### Simple Voice Generation Request With No Error Checking:
+### Simple TTS Request With No Error Checking:
 Use at your own risk. This is primarily for understanding the necessary parts to construct the API call. 
 
 ```python
@@ -33,7 +33,7 @@ with open('speech.mp3', 'wb') as f:
 print("Speech generated successfully, saved as speech.mp3")
 ```
 
-### Voice Generation Request With Error Checking:
+### TTS Request With Error Checking:
 All necessary error checking implemented and will print the error upon return of the API if necessary. 
 
 ```python
@@ -60,11 +60,9 @@ def generate_speech(url, headers, text, voice):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")
 
-# URL of the Flask API
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'kivsa_ehad', 'request-type': 'INPUT'}
 text = "Hello! 你好! Hola! नमस्ते! Bonjour! こんにちは! مرحبا! 안녕하세요! Ciao! Cześć! Привіт! வணக்கம்!"
 voice = 'Julius'
 
-# Generate speech
 generate_speech(url, headers, text, voice)
