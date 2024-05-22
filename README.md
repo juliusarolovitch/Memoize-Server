@@ -117,6 +117,7 @@ def add_user(url, headers, file_paths):
 
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'kivsa_ehad', 'request-type': 'ADD_USER', 'voice_description': ''}
+# The paths of the audio recordings you're looking to train on within your local directory
 file_paths = ['output.mp4']
 
 add_user(url, headers, file_paths)
