@@ -19,6 +19,9 @@ The current implementation has a framework so that API users will not be able to
 
 ## Example Usage:
 
+You don't have to train a voice right away to use text-to-speech. This is because all users have access to my voice via the ElevenLabs API, which you can try. It's ID is 'Julius'. 
+Training a voice requires at least 30 seconds of quality recording, preferably with a variety of expressions in the recording. Note that it currently struggles with strong accents. 
+
 ### Simple TTS Request With No Error Checking:
 Use at your own risk. This is primarily for understanding the necessary parts to construct the API call. 
 
