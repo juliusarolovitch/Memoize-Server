@@ -1,5 +1,7 @@
 # Memoize Labs API Documentation
 
+### Note: The API server is not currently hosted on AWS. You are able to run it locally in the meantime. 
+
 The current implementation of the API is essentially a proxy server to the ElevenLabs API. All it does is provide a Flask-based request interface for text-to-speech and voice cloning. This will change as we add more of our features. 
 
 The necessary parts to construct an API call are as follows:
