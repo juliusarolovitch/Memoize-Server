@@ -4,7 +4,7 @@ Usage:
 
 Simple Voice Generation Request:
 
-'''
+```python
 import requests
 
 def generate_speech(url, headers, text, voice):
@@ -36,5 +36,3 @@ voice = 'Julius'
 
 # Generate speech
 generate_speech(url, headers, text, voice)
-
-'''
