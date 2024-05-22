@@ -1,6 +1,6 @@
 ## Memoize Labs API Documentation
 
-Usage:
+# Example Usage:
 
 Simple Voice Generation Request:
 
