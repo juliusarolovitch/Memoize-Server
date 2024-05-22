@@ -1,5 +1,17 @@
 # Memoize Labs API Documentation
 
+The necessary parts to construct an API call are as follows:
+
++ Headers:
+  + 'key' - Your Memoize personal API key
+  + 'request-type':
+    + Specifying 'ADD_USER' as your request type should be used for training and saving a new voice clone.
+    + Specifying 'INPUT' as your request type should be used for text input for text to speech (TTS).
++ Data:
+  + 'text' - this is only mandatory to specify when operating in INPUT mode, i.e. when you're inputting text for TTS.
+  + 'voice' - the name of the voice you are referencing. In INPUT mode, it is the name of the voice you want the text to be read in. In ADD_USER mode, it is the name of the voice you want to add.
+    
+
 ## Example Usage:
 
 ### Simple Voice Generation Request With No Error Checking:
