@@ -54,7 +54,8 @@ def generate_speech(url, headers, text, voice):
 
 
 # URL of the Flask API
-url = 'http://127.0.0.1:5000/process'
+# Replace with your EC2 instance's public IPv4 address
+url = 'http://54.82.15.158:5000/process'
 headers = {'key': 'kivsa_ehad',
            'request-type': 'ADD_USER', 'voice_description': ''}
 
@@ -62,7 +63,7 @@ headers = {'key': 'kivsa_ehad',
 file_paths = ['output.mp4']
 
 # Add a new user
-add_user(url, headers, file_paths)
+# add_user(url, headers, file_paths)
 
 # Generate speech
 headers['request-type'] = 'INPUT'
