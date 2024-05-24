@@ -9,6 +9,7 @@ _Fun fact: you can install all necessary libraries by running_
 ```bash
 pip install -r requirements.txt
 ```
+_Not so fun fact: when you add a new library import, you have to add it and its version to requirements.txt_
 
 #### And now for the useful stuff...
 
