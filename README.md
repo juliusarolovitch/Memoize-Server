@@ -3,7 +3,12 @@
 #### Usage Note: This API is available to be called via an AWS instance or to be run locally
 
 #### Structural Note: 
-local_server.py contains the up-to-date version for the local server. remote_server.py contains the up-to-date version for the remote server. Assign a 3rd-party reviewer when merging changes into either, and note that the remote server will require pulling from GitHub and restarting to reflect changes. Only 4 files should exist in the repository: the remote and local server scripts, the gitignore, and the README. Note that you will need the .env file to run this server locally, but it cannot be posted to the public repository due to API keys. 
+local_server.py contains the up-to-date version for the local server. remote_server.py contains the up-to-date version for the remote server. Assign a 3rd-party reviewer when merging changes into either, and note that the remote server will require pulling from GitHub and restarting to reflect changes. Only 5 files should exist in the repository: the remote and local server scripts, the gitignore, the library requirements, and the README. Note that you will need the .env file to run this server locally, but it cannot be posted to the public repository due to API keys. 
+
+_Fun fact: you can install all necessary libraries by running_
+```bash
+pip install -r requirements.txt
+```
 
 #### And now for the useful stuff...
 
