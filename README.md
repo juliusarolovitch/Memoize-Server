@@ -9,11 +9,11 @@ The necessary parts to construct an API call are as follows:
 + Headers:
   + 'key' - Your Memoize personal API key
   + 'request-type':
-    + Specifying 'ADD_VOICE' as your request type should be used for training and saving a new voice clone.
+    + Specifying 'ADD_USER' as your request type should be used for training and saving a new voice clone.
     + Specifying 'INPUT' as your request type should be used for text input for text to speech (TTS).
 + Data:
   + 'text' - this is only mandatory to specify when operating in INPUT mode, i.e. when you're inputting text for TTS.
-  + 'voice' - the name of the voice you are referencing. In INPUT mode, it is the name of the voice you want the text to be read in. In ADD_VOICE mode, it is the name of the voice you want to add.
+  + 'voice' - the name of the voice you are referencing. In INPUT mode, it is the name of the voice you want the text to be read in. In ADD_USER mode, it is the name of the voice you want to add.
 
 ### Basic Security: Implementing Key-Specific Voices:
 
@@ -91,7 +91,7 @@ Voice cloning benefits from adding a brief description of the person, which can 
 ```python
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'kivsa_ehad',
-           'request-type': 'ADD_VOICE', 'voice_description': ''}
+           'request-type': 'ADD_USER', 'voice_description': ''}
 file_paths = ['output.mp4']
 files = [('files[]', open(file_path, 'rb')) for file_path in file_paths]
 data = {'voice': 'Julius'}
@@ -107,7 +107,7 @@ Voice cloning benefits from adding a brief description of the person, which can 
 
 import requests
 
-def add_voice(url, headers, file_paths):
+def add_user(url, headers, file_paths):
     files = [('files[]', open(file_path, 'rb')) for file_path in file_paths]
     data = {'voice': 'Julius'}
 
@@ -132,9 +132,9 @@ def add_voice(url, headers, file_paths):
         print(f"Request failed: {str(e)}")
 
 url = 'http://127.0.0.1:5000/process'
-headers = {'key': 'kivsa_ehad', 'request-type': 'ADD_VOICE', 'voice_description': ''}
+headers = {'key': 'kivsa_ehad', 'request-type': 'ADD_USER', 'voice_description': ''}
 # The paths of the audio recordings you're looking to train on within your local directory
 file_paths = ['output.mp4']
 
-add_voice(url, headers, file_paths)
+add_user(url, headers, file_paths)
 ```
