@@ -37,7 +37,7 @@ The text can be in any of the 12 languages that both the ElevenLabs API and Chat
 
 ```python
 url = 'http://127.0.0.1:5000/process'
-headers = {'key': 'kivsa_ehad', 'request-type': 'INPUT'}
+headers = {'key': 'MEMOIZE_KEY', 'request-type': 'INPUT'}
 text = "Hello! 你好! Hola! नमस्ते! Bonjour! こんにちは! مرحبا! 안녕하세요! Ciao! Cześć! Привіт! வணக்கம்!"
 voice = 'Julius'
 data = {'text': text, 'voice': voice}
@@ -77,7 +77,7 @@ def generate_speech(url, headers, text, voice):
         print(f"Request failed: {str(e)}")
 
 url = 'http://127.0.0.1:5000/process'
-headers = {'key': 'kivsa_ehad', 'request-type': 'INPUT'}
+headers = {'key': 'MEMOIZE_KEY', 'request-type': 'INPUT'}
 text = "Hello! 你好! Hola! नमस्ते! Bonjour! こんにちは! مرحبا! 안녕하세요! Ciao! Cześć! Привіт! வணக்கம்!"
 voice = 'Julius'
 
@@ -92,7 +92,7 @@ Voice cloning benefits from adding a brief description of the person, which can 
 
 ```python
 url = 'http://127.0.0.1:5000/process'
-headers = {'key': 'kivsa_ehad',
+headers = {'key': 'MEMOIZE_KEY',
            'request-type': 'ADD_USER', 'voice_description': ''}
 file_paths = ['output.mp4']
 files = [('files[]', open(file_path, 'rb')) for file_path in file_paths]
@@ -134,7 +134,7 @@ def add_user(url, headers, file_paths):
         print(f"Request failed: {str(e)}")
 
 url = 'http://127.0.0.1:5000/process'
-headers = {'key': 'kivsa_ehad', 'request-type': 'ADD_USER', 'voice_description': ''}
+headers = {'key': 'MEMOIZE_KEY', 'request-type': 'ADD_USER', 'voice_description': ''}
 # The paths of the audio recordings you're looking to train on within your local directory
 file_paths = ['output.mp4']
 
