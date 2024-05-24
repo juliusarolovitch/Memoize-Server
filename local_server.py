@@ -82,13 +82,18 @@ class Server:
                 file.save(filepath)
                 file_paths.append(filepath)
 
-                # Check the duration of the file
-                audio = AudioSegment.from_file(filepath)
-                duration = len(audio) / 1000  # Convert to seconds
-                total_duration += duration
+                # Check the duration and validity of the file
+                try:
+                    audio = AudioSegment.from_file(filepath)
+                    duration = len(audio) / 1000  # Convert to seconds
+                    total_duration += duration
 
-                self.app.logger.debug(
-                    f"File {filename} duration: {duration} seconds")
+                    self.app.logger.debug(
+                        f"File {filename} duration: {duration} seconds")
+                except Exception as e:
+                    self.app.logger.error(
+                        f"File {filename} is corrupted or invalid: {str(e)}")
+                    return jsonify({"error": f"File {filename} is corrupted or invalid"}), 400
             else:
                 self.app.logger.error(f"File {file.filename} is not allowed")
                 return jsonify({"error": f"File {file.filename} is not allowed"}), 400
