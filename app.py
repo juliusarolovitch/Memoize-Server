@@ -2,10 +2,10 @@ from flask import Flask, request, jsonify, send_file
 import os
 import logging
 from elevenlabs.client import ElevenLabs
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 from io import BytesIO
 
-load_dotenv(find_dotenv('keys.env'))
+load_dotenv()
 
 
 class Server:
