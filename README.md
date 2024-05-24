@@ -9,7 +9,7 @@ The current implementation of the API is essentially a proxy server to the Eleve
 The necessary parts to construct an API call are as follows:
 
 + Headers:
-  + 'key' - Your Memoize personal API key
+  + 'key' - Your Memoize personal API key. 'MEMOIZE_KEY' is used throughout the code as a placeholder. 
   + 'request-type':
     + Specifying 'ADD_USER' as your request type should be used for training and saving a new voice clone.
     + Specifying 'INPUT' as your request type should be used for text input for text to speech (TTS).
