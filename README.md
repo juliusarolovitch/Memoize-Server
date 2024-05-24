@@ -2,7 +2,16 @@
 
 #### Usage Note: This API is available to be called via an AWS instance or to be run locally
 
-#### Structural Note: local_server.py contains the up-to-date version for the local server. remote_server.py contains the up-to-date version for the remote server. Assign a 3rd-party reviewer when merging changes into either, and note that the remote server will require pulling from GitHub and restarting to reflect changes. 
+#### Structural Note: 
+local_server.py contains the up-to-date version for the local server. remote_server.py contains the up-to-date version for the remote server. Assign a 3rd-party reviewer when merging changes into either, and note that the remote server will require pulling from GitHub and restarting to reflect changes. Only 5 files should exist in the repository: the remote and local server scripts, the gitignore, the library requirements, and the README. Note that you will need the .env file to run this server locally, but it cannot be posted to the public repository due to API keys. 
+
+_Fun fact: you can install all necessary libraries by running_
+```bash
+pip install -r requirements.txt
+```
+##### _Not so fun fact: when you add a new library import, you have to add it and its version to requirements.txt_
+
+#### And now for the useful stuff...
 
 The current implementation of the API is essentially a proxy server to the ElevenLabs API. All it does is provide a Flask-based request interface for text-to-speech and voice cloning. This will change as we add more of our features. 
 
@@ -21,7 +30,7 @@ The necessary parts to construct an API call are as follows:
 
 The current implementation has a framework so that API users will not be able to access or see the voices of other users for simple use cases. This is implemented by concatenating the API user's ID to the name of the voice they are using on the backend. i.e. for an API user with key of 'sheep' using a voice named 'cow', the backend voice will be titled 'sheep_cow'. Additionally, when we fetch all voices for a user, it is as simple as tracking down all voices that start with the necessary API key. There are obvious vulnerabilities, though. 
 
-### Notes on the Remote Server
+### Notes on the Remote Server:
 The remote server is hosted via AWS EC2. It's public IP address is 54.82.15.158. It supports up to 4 concurrent requests-subsequent requests may be queued or rejected. 
 
 ## Example Usage:
