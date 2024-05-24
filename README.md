@@ -5,7 +5,7 @@
 #### Structural Note: 
 local_server.py contains the up-to-date version for the local server. remote_server.py contains the up-to-date version for the remote server. Assign a 3rd-party reviewer when merging changes into either, and note that the remote server will require pulling from GitHub and restarting to reflect changes. Only 4 files should exist in the repository: the remote and local server scripts, the gitignore, and the README. Note that you will need the .env file to run this server locally, but it cannot be posted to the public repository due to API keys. 
 
-
+#### And now for the useful stuff...
 
 The current implementation of the API is essentially a proxy server to the ElevenLabs API. All it does is provide a Flask-based request interface for text-to-speech and voice cloning. This will change as we add more of our features. 
 
