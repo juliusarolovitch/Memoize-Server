@@ -22,9 +22,6 @@ The current implementation has a framework so that API users will not be able to
 ### Notes on the Remote Server
 The remote server is hosted via AWS EC2. It's public IP address is 54.82.15.158. It supports up to 4 concurrent requests-subsequent requests may be queued or rejected. 
 
-## Example Usage Using The Remote Server:
-
-
 ## Example Usage:
 
 You don't have to train a voice right away to use text-to-speech. This is because all users have access to my voice via the ElevenLabs API, which you can try. It's ID is 'Julius'. 
