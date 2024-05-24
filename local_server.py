@@ -4,6 +4,7 @@ import logging
 from elevenlabs.client import ElevenLabs
 from dotenv import load_dotenv
 from io import BytesIO
+from pydub import AudioSegment
 
 load_dotenv()
 
@@ -12,7 +13,7 @@ class Server:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
-        self.app.config['ALLOWED_EXTENSIONS'] = {'mp4'}
+        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3'}
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
@@ -71,6 +72,8 @@ class Server:
             return jsonify({"error": "No files uploaded"}), 400
 
         file_paths = []
+        total_duration = 0
+
         for file in files:
             if file and self.allowedFile(file.filename):
                 filename = file.filename
@@ -78,9 +81,22 @@ class Server:
                     self.app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
                 file_paths.append(filepath)
+
+                # Check the duration of the file
+                audio = AudioSegment.from_file(filepath)
+                duration = len(audio) / 1000  # Convert to seconds
+                total_duration += duration
+
+                self.app.logger.debug(
+                    f"File {filename} duration: {duration} seconds")
             else:
                 self.app.logger.error(f"File {file.filename} is not allowed")
                 return jsonify({"error": f"File {file.filename} is not allowed"}), 400
+
+        if total_duration < 30:
+            self.app.logger.error(
+                "Total duration of files is less than 30 seconds")
+            return jsonify({"error": "Total duration of files must be at least 30 seconds"}), 400
 
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
