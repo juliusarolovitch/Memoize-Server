@@ -24,7 +24,7 @@ The necessary parts to construct an API call are as follows:
 
 The current implementation has a framework so that API users will not be able to access or see the voices of other users for simple use cases. This is implemented by concatenating the API user's ID to the name of the voice they are using on the backend. i.e. for an API user with key of 'sheep' using a voice named 'cow', the backend voice will be titled 'sheep_cow'. Additionally, when we fetch all voices for a user, it is as simple as tracking down all voices that start with the necessary API key. There are obvious vulnerabilities, though. 
 
-### Notes on the Remote Server
+### Notes on the Remote Server:
 The remote server is hosted via AWS EC2. It's public IP address is 54.82.15.158. It supports up to 4 concurrent requests-subsequent requests may be queued or rejected. 
 
 ## Example Usage:
