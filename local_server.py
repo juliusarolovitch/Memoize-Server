@@ -16,12 +16,12 @@ class Server:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
-        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3'}
+        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc'}
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
-        # Ensure your key is 32 bytes for AES-256
-        self.encryption_key = os.getenv('ENCRYPTION_KEY').encode()
+        self.encryption_key = base64.urlsafe_b64decode(
+            os.getenv('ENCRYPTION_KEY') + '===')
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -52,23 +52,22 @@ class Server:
             self.app.logger.error(f"Error getting voices: {str(e)}")
             return []
 
-    def encrypt(self, plaintext):
-        iv = os.urandom(16)
-        cipher = Cipher(algorithms.AES(self.encryption_key),
-                        modes.CFB(iv), backend=default_backend())
-        encryptor = cipher.encryptor()
-        ciphertext = encryptor.update(
-            plaintext.encode()) + encryptor.finalize()
-        return base64.b64encode(iv + ciphertext).decode()
+    def decrypt_file(self, file_path, encryption_key):
+        with open(file_path, 'rb') as file:
+            encrypted_data = file.read()
 
-    def decrypt(self, ciphertext):
-        data = base64.b64decode(ciphertext)
-        iv = data[:16]
-        cipher = Cipher(algorithms.AES(self.encryption_key),
+        iv = encrypted_data[:16]
+        ciphertext = encrypted_data[16:]
+        cipher = Cipher(algorithms.AES(encryption_key),
                         modes.CFB(iv), backend=default_backend())
         decryptor = cipher.decryptor()
-        plaintext = decryptor.update(data[16:]) + decryptor.finalize()
-        return plaintext.decode()
+        decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
+
+        decrypted_file_path = file_path.rstrip('.enc')
+        with open(decrypted_file_path, 'wb') as file:
+            file.write(decrypted_data)
+
+        return decrypted_file_path
 
     def processRequest(self):
         if not self.authenticateApiKey(request):
@@ -96,6 +95,8 @@ class Server:
 
         file_paths = []
         total_duration = 0
+        files_encrypted = request.form.get(
+            'files_encrypted', 'false') == 'true'
 
         for file in files:
             if file and self.allowedFile(file.filename):
@@ -103,11 +104,15 @@ class Server:
                 filepath = os.path.join(
                     self.app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
+
+                if files_encrypted:
+                    filepath = self.decrypt_file(filepath, self.encryption_key)
+
                 file_paths.append(filepath)
 
                 try:
                     audio = AudioSegment.from_file(filepath)
-                    duration = len(audio) / 1000
+                    duration = len(audio) / 1000  # Convert to seconds
                     total_duration += duration
 
                     self.app.logger.debug(
