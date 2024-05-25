@@ -5,6 +5,9 @@ from elevenlabs.client import ElevenLabs
 from dotenv import load_dotenv
 from io import BytesIO
 from pydub import AudioSegment
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import base64
 
 load_dotenv()
 
@@ -17,6 +20,8 @@ class Server:
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
+        # Ensure your key is 32 bytes for AES-256
+        self.encryption_key = os.getenv('ENCRYPTION_KEY').encode()
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -46,6 +51,24 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error getting voices: {str(e)}")
             return []
+
+    def encrypt(self, plaintext):
+        iv = os.urandom(16)
+        cipher = Cipher(algorithms.AES(self.encryption_key),
+                        modes.CFB(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(
+            plaintext.encode()) + encryptor.finalize()
+        return base64.b64encode(iv + ciphertext).decode()
+
+    def decrypt(self, ciphertext):
+        data = base64.b64decode(ciphertext)
+        iv = data[:16]
+        cipher = Cipher(algorithms.AES(self.encryption_key),
+                        modes.CFB(iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        plaintext = decryptor.update(data[16:]) + decryptor.finalize()
+        return plaintext.decode()
 
     def processRequest(self):
         if not self.authenticateApiKey(request):
@@ -82,10 +105,9 @@ class Server:
                 file.save(filepath)
                 file_paths.append(filepath)
 
-                # Check the duration and validity of the file
                 try:
                     audio = AudioSegment.from_file(filepath)
-                    duration = len(audio) / 1000  # Convert to seconds
+                    duration = len(audio) / 1000
                     total_duration += duration
 
                     self.app.logger.debug(
@@ -108,19 +130,21 @@ class Server:
             client = ElevenLabs(api_key=api_key)
             provided_api_key = request.headers.get('key')
             provided_name = request.form.get('voice')
-            voice_name = f"{provided_api_key}_{provided_name}"
-            self.app.logger.debug(f"Requested voice name: {voice_name}")
+            encrypted_voice_name = self.encrypt(
+                f"{provided_api_key}~{provided_name}")
+            self.app.logger.debug(
+                f"Requested encrypted voice name: {encrypted_voice_name}")
 
             provided_voice_description = request.headers.get(
                 'voice_description')
 
             voices = self.getAllVoices(client)
             for voice in voices:
-                if voice.name == voice_name:
+                if voice.name == encrypted_voice_name:
                     return jsonify({"message": "Voice already exists", "voice": voice})
 
             voice = client.clone(
-                name=voice_name,
+                name=encrypted_voice_name,
                 description=provided_voice_description,
                 files=file_paths,
             )
@@ -137,15 +161,18 @@ class Server:
             text = request.form.get('text')
             submitted_api_key = request.headers.get('key')
             self.app.logger.debug(f"Submitted API key: {submitted_api_key}")
-            voice_name = f"{submitted_api_key}_{request.form.get('voice')}"
-            self.app.logger.debug(f"Requested voice name: {voice_name}")
+            provided_name = request.form.get('voice')
+            encrypted_voice_name = self.encrypt(
+                f"{submitted_api_key}~{provided_name}")
+            self.app.logger.debug(
+                f"Requested encrypted voice name: {encrypted_voice_name}")
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
 
             audio_generator = client.generate(
                 text=text,
-                voice=voice_name,
+                voice=encrypted_voice_name,
                 model='eleven_multilingual_v2'
             )
 
