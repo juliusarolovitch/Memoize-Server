@@ -26,9 +26,9 @@ The necessary parts to construct an API call are as follows:
   + 'text' - this is only mandatory to specify when operating in INPUT mode, i.e. when you're inputting text for TTS.
   + 'voice' - the name of the voice you are referencing. In INPUT mode, it is the name of the voice you want the text to be read in. In ADD_USER mode, it is the name of the voice you want to add.
 
-### Basic Security: Implementing Key-Specific Voices:
+### Security: Encrypted Voice Names
 
-The current implementation has a framework so that API users will not be able to access or see the voices of other users for simple use cases. This is implemented by concatenating the API user's ID to the name of the voice they are using on the backend. i.e. for an API user with key of 'sheep' using a voice named 'cow', the backend voice will be titled 'sheep_cow'. Additionally, when we fetch all voices for a user, it is as simple as tracking down all voices that start with the necessary API key. There are obvious vulnerabilities, though. 
+The current implementation securely encrypts voice names on the backend as the function of the user's API key and the voice name using AES. 
 
 ### Notes on the Remote Server:
 The remote server is hosted via AWS EC2. It's public IP address is 54.82.15.158. It supports up to 4 concurrent requests-subsequent requests may be queued or rejected. 
