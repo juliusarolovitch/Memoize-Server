@@ -202,13 +202,12 @@ def add_user(url, headers, file_paths, encryption_key):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")
 
-# Example usage
 url = 'http://127.0.0.1:5000/process'
 headers = {'key': 'MEMOIZE_KEY', 'request-type': 'ADD_USER', 'voice_description': ''}
 file_paths = ['output.mp4']
 
-# Ensure your key is 32 bytes (256 bits)
-encryption_key = base64.urlsafe_b64decode('your_32_byte_encryption_key_here' + '===')
+# The encryption key is stored in your .env file
+encryption_key = base64.urlsafe_b64decode('ENCRYPTION_KEY' + '===')
 
 add_user(url, headers, file_paths, encryption_key)
 ```
