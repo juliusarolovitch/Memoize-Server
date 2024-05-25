@@ -26,9 +26,10 @@ The necessary parts to construct an API call are as follows:
   + 'text' - this is only mandatory to specify when operating in INPUT mode, i.e. when you're inputting text for TTS.
   + 'voice' - the name of the voice you are referencing. In INPUT mode, it is the name of the voice you want the text to be read in. In ADD_USER mode, it is the name of the voice you want to add.
 
-### Security: Encrypted Voice Names
+### Security:
 
 The current implementation securely encrypts voice names on the backend as the function of the user's API key and the voice name using AES. 
+Optionally, the implementation provides a framework to encrypt audio files before sending to the server and to specify a flag to ensure the server decrypts the files before use. 
 
 ### Notes on the Remote Server:
 The remote server is hosted via AWS EC2. It's public IP address is 54.82.15.158. It supports up to 4 concurrent requests-subsequent requests may be queued or rejected. 
@@ -148,4 +149,66 @@ headers = {'key': 'MEMOIZE_KEY', 'request-type': 'ADD_USER', 'voice_description'
 file_paths = ['output.mp4']
 
 add_user(url, headers, file_paths)
+```
+
+### Voice Cloning Request with Error Checking and Audio File Encryption:
+In addition to conducting voice cloning, this script also encrypts the audio files before passing them to the server and flags the files as encrypted for the server to decrypt before use. 
+```python
+import os
+import requests
+import base64
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+def encrypt_file(file_path, encryption_key):
+    iv = os.urandom(16)
+    cipher = Cipher(algorithms.AES(encryption_key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+
+    with open(file_path, 'rb') as file:
+        plaintext = file.read()
+
+    ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+    encrypted_data = iv + ciphertext
+
+    encrypted_file_path = file_path + '.enc'
+    with open(encrypted_file_path, 'wb') as file:
+        file.write(encrypted_data)
+
+    return encrypted_file_path
+
+def add_user(url, headers, file_paths, encryption_key):
+    encrypted_file_paths = [encrypt_file(file_path, encryption_key) for file_path in file_paths]
+    files = [('files[]', open(file_path, 'rb')) for file_path in encrypted_file_paths]
+    data = {'voice': 'Julius', 'files_encrypted': 'true'}
+
+    try:
+        response = requests.post(url, files=files, headers=headers, data=data)
+
+        for _, file_handle in files:
+            file_handle.close()
+
+        if response.status_code == 200:
+            print("Voice cloned successfully")
+            print("Response:", response.json())
+        else:
+            print("Failed to clone voice")
+            print("Response status code:", response.status_code)
+            try:
+                print("Response:", response.json())
+            except requests.exceptions.JSONDecodeError:
+                print("Response content is not in JSON format")
+                print("Response content:", response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {str(e)}")
+
+# Example usage
+url = 'http://127.0.0.1:5000/process'
+headers = {'key': 'MEMOIZE_KEY', 'request-type': 'ADD_USER', 'voice_description': ''}
+file_paths = ['output.mp4']
+
+# Ensure your key is 32 bytes (256 bits)
+encryption_key = base64.urlsafe_b64decode('your_32_byte_encryption_key_here' + '===')
+
+add_user(url, headers, file_paths, encryption_key)
 ```
