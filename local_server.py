@@ -7,6 +7,7 @@ from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from GPT import Text
 import base64
 
 load_dotenv()
@@ -174,6 +175,10 @@ class Server:
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
+            
+            openai_key = os.getenv('OPENAI_API_KEY')
+            # convert text to GPT response
+            text = Text(text, openai_key).to_gpt()
 
             audio_generator = client.generate(
                 text=text,

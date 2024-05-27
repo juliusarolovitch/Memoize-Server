@@ -108,7 +108,7 @@ class Server:
             self.app.logger.error(f"Error cloning voice: {str(e)}")
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
 
-      def generateSpeech(self, request):
+    def generateSpeech(self, request):
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
             client = ElevenLabs(api_key=api_key)
@@ -121,6 +121,11 @@ class Server:
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
+
+            openai_key = os.getenv('OPENAI_API_KEY')
+            # convert text to GPT response
+            text = Text(text, openai_key).to_gpt()
+            # now text is GPT's response
 
             audio_generator = client.generate(
                 text=text,
