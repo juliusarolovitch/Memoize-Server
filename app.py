@@ -4,6 +4,7 @@ import logging
 from elevenlabs.client import ElevenLabs
 from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
+from GPT import Text
 
 load_dotenv(find_dotenv('keys.env'))
 
