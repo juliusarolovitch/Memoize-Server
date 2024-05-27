@@ -1,0 +1,11 @@
+# Ignore all mp4 files
+*.mp3
+
+# Ignore play.py
+play.py
+
+# Ignore .env file
+.env
+
+# Ignore uploads folder
+uploads/
