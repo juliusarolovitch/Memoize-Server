@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from io import BytesIO
 from GPT import Text
 
+#test 
+
 load_dotenv()
 
 class Server:
@@ -108,7 +110,7 @@ class Server:
             self.app.logger.error(f"Error cloning voice: {str(e)}")
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
 
-      def generateSpeech(self, request):
+    def generateSpeech(self, request):
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
             client = ElevenLabs(api_key=api_key)
