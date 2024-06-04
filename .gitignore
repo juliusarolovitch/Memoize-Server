@@ -9,3 +9,6 @@ play.py
 
 # Ignore uploads folder
 uploads/
+
+venv
+
