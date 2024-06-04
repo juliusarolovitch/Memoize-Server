@@ -17,5 +17,3 @@ class Text:
         ]
         )
         return completion.choices[0].message.content
-text = Text("Wny do you finish your homework only so late just before the deadline?", "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")
-text.to_gpt()
