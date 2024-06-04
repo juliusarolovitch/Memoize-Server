@@ -2,29 +2,21 @@ from flask import Flask, request, jsonify, send_file
 import os
 import logging
 from elevenlabs.client import ElevenLabs
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
-from pydub import AudioSegment
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
 from GPT import Text
-import base64
-from finetune import FineTune
 
-load_dotenv()
+load_dotenv(find_dotenv('keys.env'))
 
 
 class Server:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
-        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc'}
+        self.app.config['ALLOWED_EXTENSIONS'] = {'mp4'}
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
-        self.encryption_key = base64.urlsafe_b64decode(
-            os.getenv('ENCRYPTION_KEY') + '===')
-        self.llm = 'gpt-4o'
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -55,23 +47,6 @@ class Server:
             self.app.logger.error(f"Error getting voices: {str(e)}")
             return []
 
-    def decrypt_file(self, file_path, encryption_key):
-        with open(file_path, 'rb') as file:
-            encrypted_data = file.read()
-
-        iv = encrypted_data[:16]
-        ciphertext = encrypted_data[16:]
-        cipher = Cipher(algorithms.AES(encryption_key),
-                        modes.CFB(iv), backend=default_backend())
-        decryptor = cipher.decryptor()
-        decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
-
-        decrypted_file_path = file_path.rstrip('.enc')
-        with open(decrypted_file_path, 'wb') as file:
-            file.write(decrypted_data)
-
-        return decrypted_file_path
-
     def processRequest(self):
         if not self.authenticateApiKey(request):
             return jsonify({"error": "Unauthorized"}), 401
@@ -97,62 +72,35 @@ class Server:
             return jsonify({"error": "No files uploaded"}), 400
 
         file_paths = []
-        total_duration = 0
-        files_encrypted = request.form.get(
-            'files_encrypted', 'false') == 'true'
-
         for file in files:
             if file and self.allowedFile(file.filename):
                 filename = file.filename
                 filepath = os.path.join(
                     self.app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
-
-                if files_encrypted:
-                    filepath = self.decrypt_file(filepath, self.encryption_key)
-
                 file_paths.append(filepath)
-
-                try:
-                    audio = AudioSegment.from_file(filepath)
-                    duration = len(audio) / 1000  # Convert to seconds
-                    total_duration += duration
-
-                    self.app.logger.debug(
-                        f"File {filename} duration: {duration} seconds")
-                except Exception as e:
-                    self.app.logger.error(
-                        f"File {filename} is corrupted or invalid: {str(e)}")
-                    return jsonify({"error": f"File {filename} is corrupted or invalid"}), 400
             else:
                 self.app.logger.error(f"File {file.filename} is not allowed")
                 return jsonify({"error": f"File {file.filename} is not allowed"}), 400
-
-        if total_duration < 30:
-            self.app.logger.error(
-                "Total duration of files is less than 30 seconds")
-            return jsonify({"error": "Total duration of files must be at least 30 seconds"}), 400
 
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
             client = ElevenLabs(api_key=api_key)
             provided_api_key = request.headers.get('key')
             provided_name = request.form.get('voice')
-            encrypted_voice_name = self.encrypt(
-                f"{provided_api_key}~{provided_name}")
-            self.app.logger.debug(
-                f"Requested encrypted voice name: {encrypted_voice_name}")
+            voice_name = f"{provided_api_key}_{provided_name}"
+            self.app.logger.debug(f"Requested voice name: {voice_name}")
 
             provided_voice_description = request.headers.get(
                 'voice_description')
 
             voices = self.getAllVoices(client)
             for voice in voices:
-                if voice.name == encrypted_voice_name:
+                if voice.name == voice_name:
                     return jsonify({"message": "Voice already exists", "voice": voice})
 
             voice = client.clone(
-                name=encrypted_voice_name,
+                name=voice_name,
                 description=provided_voice_description,
                 files=file_paths,
             )
@@ -160,11 +108,6 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error cloning voice: {str(e)}")
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
-        
-    def finetuneResponses(self, training_file):
-        fntune = FineTune(training_file, os.getenv('OPENAI_API_KEY'))
-        self.llm = fntune.train()
-        return self.llm
 
     def generateSpeech(self, request):
         try:
@@ -174,22 +117,19 @@ class Server:
             text = request.form.get('text')
             submitted_api_key = request.headers.get('key')
             self.app.logger.debug(f"Submitted API key: {submitted_api_key}")
-            provided_name = request.form.get('voice')
-            encrypted_voice_name = self.encrypt(
-                f"{submitted_api_key}~{provided_name}")
-            self.app.logger.debug(
-                f"Requested encrypted voice name: {encrypted_voice_name}")
+            voice_name = f"{submitted_api_key}_{request.form.get('voice')}"
+            self.app.logger.debug(f"Requested voice name: {voice_name}")
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
             
-            openai_key = os.getenv('OPENAI_API_KEY')
             # convert text to GPT response
-            text = Text(text, openai_key, self.llm).to_gpt()
+            text = Text(text, "OPENAI_API_KEY").to_gpt()
+            # now text is GPT's response
 
             audio_generator = client.generate(
                 text=text,
-                voice=encrypted_voice_name,
+                voice=voice_name,
                 model='eleven_multilingual_v2'
             )
 
