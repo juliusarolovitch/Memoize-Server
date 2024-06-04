@@ -8,6 +8,7 @@ from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import base64
+import numpy as np
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ class Server:
     def setupRoutes(self):
         self.app.add_url_rule('/process', 'processRequest',
                               self.processRequest, methods=['POST'])
+        self.app.add_url_rule('/audio', 'audioStream', self.audioStream, methods=['POST'])
 
     def allowedFile(self, filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.app.config['ALLOWED_EXTENSIONS']
@@ -190,6 +192,19 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error generating speech: {str(e)}")
             return jsonify({"error": f"Error generating speech: {str(e)}"}), 500
+        
+    def audioStream(self):
+        if not self.authenticateApiKey(request):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        try:
+            data = request.get_data()
+            int16_data = np.frombuffer(data, dtype=np.int16)
+            self.app.logger.debug('Received audio data:', int16_data)
+            return jsonify({"message": "Audio data received"}), 200
+        except Exception as e:
+            self.app.logger.error(f"Error receiving audio: {str(e)}")
+            return jsonify({"error": f"Error receiving audio: {str(e)}"}), 500
 
     def run(self):
         self.app.run(debug=False)
