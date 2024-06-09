@@ -204,14 +204,12 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            capture_duration = 3  # Capture time in seconds - currently configured to save to a file
-
+            capture_duration = 3 
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait() 
             self.app.logger.debug("Audio recording finished.")
 
-            # Saves audio to wav file in upload folder
             upload_folder = self.app.config['UPLOAD_FOLDER']
             os.makedirs(upload_folder, exist_ok=True)
             audio_file_path = os.path.join(upload_folder, 'captured_audio.wav')
