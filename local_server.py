@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+#from flask_socketio import SocketIO, emit
 import os
 import logging
 from elevenlabs.client import ElevenLabs
@@ -9,9 +10,11 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import base64
 import numpy as np
+import sounddevice as sd
+import soundfile as sf
+from memoize_audio_processing import memoizeAudioProccessing
 
 load_dotenv()
-
 
 class Server:
     def __init__(self):
@@ -23,6 +26,9 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
+        self.processor = memoizeAudioProccessing()
+        #self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+        
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -192,20 +198,34 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error generating speech: {str(e)}")
             return jsonify({"error": f"Error generating speech: {str(e)}"}), 500
-        
+
     def audioStream(self):
         if not self.authenticateApiKey(request):
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            data = request.get_data()
-            int16_data = np.frombuffer(data, dtype=np.int16)
-            self.app.logger.debug('Received audio data:', int16_data)
-            return jsonify({"message": "Audio data received"}), 200
-        except Exception as e:
-            self.app.logger.error(f"Error receiving audio: {str(e)}")
-            return jsonify({"error": f"Error receiving audio: {str(e)}"}), 500
+            capture_duration = 3  # Capture time in seconds - currently configured to save to a file
 
+            self.app.logger.debug("Recording audio...")
+            audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
+            sd.wait() 
+            self.app.logger.debug("Audio recording finished.")
+
+            # Saves audio to wav file in upload folder
+            upload_folder = self.app.config['UPLOAD_FOLDER']
+            os.makedirs(upload_folder, exist_ok=True)
+            audio_file_path = os.path.join(upload_folder, 'captured_audio.wav')
+            sf.write(audio_file_path, audio_data, samplerate=44100)
+
+            processor = memoizeAudioProccessing()
+            transcription = processor.transcribe(audio_file_path)
+
+            return jsonify({"message": transcription, "audio_file_path": audio_file_path}), 200
+
+        except Exception as e:
+            self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
+            return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
+        
     def run(self):
         self.app.run(debug=False)
 
