@@ -5,9 +5,10 @@ from elevenlabs.client import ElevenLabs
 from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from GPT import Text
+from finetune import FineTune
+from vision import Video
 
 load_dotenv(find_dotenv('keys.env'))
-
 
 class Server:
     def __init__(self):
@@ -17,6 +18,8 @@ class Server:
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
+        self.llm = 'gpt-3.5-turbo'
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -108,6 +111,34 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error cloning voice: {str(e)}")
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
+        
+    def finetuneResponses(self, training_file):
+        fntune = FineTune(training_file, self.openai_api_key)
+        self.llm = fntune.train()
+        return self.llm
+    
+    def scene_to_text(self, path):
+        # describe video feed, local
+        video = Video(path, 'Describe what you see in the video.', self.openai_api_key)
+        return video.video_prompt(frame_rate=50)
+    
+    def format_prompt(self, user, speaker_data, video = False, video_path = None):
+
+        prompt = "User: " + user + "."
+        scene = "Unknown"
+
+        if video:
+            scene = self.scene_to_text(video_path)
+        str_to_add = "Scene: " + scene
+
+        prompt += str_to_add
+
+        for speaker in list(speaker.keys()):
+            msg = speaker_data[speaker]
+            str_to_add = speaker + ": " + msg 
+            prompt += str_to_add
+
+        return prompt
 
     def generateSpeech(self, request):
         try:
@@ -124,7 +155,8 @@ class Server:
                 return jsonify({"error": "Text is required"}), 400
             
             # convert text to GPT response
-            text = Text(text, "OPENAI_API_KEY").to_gpt()
+            # call self.format_prompt
+            text = Text(text, self.openai_api_key, self.llm).to_gpt()
             # now text is GPT's response
 
             audio_generator = client.generate(

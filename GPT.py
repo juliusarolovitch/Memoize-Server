@@ -12,7 +12,7 @@ class Text:
         completion = self.client.chat.completions.create(
         model=self.llm,
         messages=[
-            {"role": "system", "content": "You are the clone / digital twin of the user. You learn everything about them and act like them whenever you are in a conversation. Speak in first person view."},
+            {"role": "system", "content": "You are the clone / digital twin of the user who is identified in everyh prompt by the tag 'User:'. You learn everything about them and act like them whenever you are in a conversation. Speak in first person view."},
             {"role": "user", "content": self.text}
         ]
         )
