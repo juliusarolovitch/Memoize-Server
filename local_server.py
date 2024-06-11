@@ -10,9 +10,9 @@ from cryptography.hazmat.backends import default_backend
 from GPT import Text
 import base64
 from finetune import FineTune
+from vision import Images, Video
 
 load_dotenv()
-
 
 class Server:
     def __init__(self):
@@ -25,6 +25,7 @@ class Server:
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
         self.llm = 'gpt-4o'
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -162,9 +163,32 @@ class Server:
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
         
     def finetuneResponses(self, training_file):
-        fntune = FineTune(training_file, os.getenv('OPENAI_API_KEY'))
+        fntune = FineTune(training_file, self.openai_api_key)
         self.llm = fntune.train()
         return self.llm
+    
+    def scene_to_text(self, path):
+        # describe video feed, local
+        video = Video(path, 'Describe what you see in the video.', self.openai_api_key)
+        return video.video_prompt(frame_rate=50)
+    
+    def format_prompt(self, user, speaker_data, video = False, video_path = None):
+
+        prompt = "User: " + user + "."
+        scene = "Unknown"
+
+        if video:
+            scene = self.scene_to_text(video_path)
+        str_to_add = "Scene: " + scene
+
+        prompt += str_to_add
+
+        for speaker in list(speaker.keys()):
+            msg = speaker_data[speaker]
+            str_to_add = speaker + ": " + msg 
+            prompt += str_to_add
+
+        return prompt
 
     def generateSpeech(self, request):
         try:
@@ -183,9 +207,11 @@ class Server:
             if not text:
                 return jsonify({"error": "Text is required"}), 400
             
-            openai_key = os.getenv('OPENAI_API_KEY')
+            #format prompt to final input format
+            #call self.format_prompt
+
             # convert text to GPT response
-            text = Text(text, openai_key, self.llm).to_gpt()
+            text = Text(text, self.openai_api_key, self.llm).to_gpt()
 
             audio_generator = client.generate(
                 text=text,
