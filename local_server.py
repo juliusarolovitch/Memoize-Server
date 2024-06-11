@@ -11,6 +11,7 @@ from GPT import Text
 import base64
 from finetune import FineTune
 from vision import Images, Video
+import hashlib
 
 load_dotenv()
 
@@ -18,7 +19,7 @@ class Server:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
-        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc'}
+        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc', 'mp4'}
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
@@ -26,6 +27,27 @@ class Server:
             os.getenv('ENCRYPTION_KEY') + '===')
         self.llm = 'gpt-4o'
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
+
+    def derive_iv(self, data):
+
+        hash_digest = hashlib.sha256(data.encode()).digest()
+        return hash_digest[:16]
+
+    def encrypt(self, data):
+        iv = self.derive_iv(data)
+        cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        encrypted_data = encryptor.update(data.encode()) + encryptor.finalize()
+        return base64.urlsafe_b64encode(iv + encrypted_data).decode()
+    
+    def decrypt(self, encrypted_data):
+        encrypted_data_bytes = base64.urlsafe_b64decode(encrypted_data)
+        iv = encrypted_data_bytes[:16]
+        ciphertext = encrypted_data_bytes[16:]
+        cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
+        return decrypted_data.decode()
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
