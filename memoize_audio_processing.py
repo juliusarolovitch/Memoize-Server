@@ -34,7 +34,7 @@ class memoizeAudioProccessing:
                 segment_path = os.path.join(
                     output_dir, f"{speaker}_segment_{i}.wav")
                 segment.export(segment_path, format="wav")
-
+        
         return speaker_segments
 
     def transcribe(self, segment_path):

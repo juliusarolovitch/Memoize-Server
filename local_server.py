@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, send_file
-#from flask_socketio import SocketIO, emit
 import os
 import logging
 from elevenlabs.client import ElevenLabs
@@ -26,9 +25,14 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
-        self.processor = memoizeAudioProccessing()
-        #self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+        self.audio_processor = memoizeAudioProccessing()
         
+    def encrypt(self, data):
+        iv = os.urandom(16)
+        cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        encrypted_data = encryptor.update(data.encode()) + encryptor.finalize()
+        return base64.urlsafe_b64encode(iv + encrypted_data).decode()
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -38,8 +42,7 @@ class Server:
             os.makedirs(self.app.config['UPLOAD_FOLDER'])
 
     def setupRoutes(self):
-        self.app.add_url_rule('/process', 'processRequest',
-                              self.processRequest, methods=['POST'])
+        self.app.add_url_rule('/process', 'processRequest', self.processRequest, methods=['POST'])
         self.app.add_url_rule('/audio', 'audioStream', self.audioStream, methods=['POST'])
 
     def allowedFile(self, filename):
@@ -204,21 +207,24 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            capture_duration = 3 
+            capture_duration = 10
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait() 
             self.app.logger.debug("Audio recording finished.")
 
             upload_folder = self.app.config['UPLOAD_FOLDER']
+            #upload_folder = 'test'
             os.makedirs(upload_folder, exist_ok=True)
-            audio_file_path = os.path.join(upload_folder, 'captured_audio.wav')
+            audio_file_path = os.path.join(upload_folder, 'infer.wav')
+
+            
             sf.write(audio_file_path, audio_data, samplerate=44100)
 
-            processor = memoizeAudioProccessing()
-            transcription = processor.transcribe(audio_file_path)
-
-            return jsonify({"message": transcription, "audio_file_path": audio_file_path}), 200
+            #transcription = self.audio_processor.transcribe(audio_file_path)
+            speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
+            #print(speaker_segments)
+            return jsonify({"message": speaker_segments, "audio_file_path": audio_file_path}), 200
 
         except Exception as e:
             self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
