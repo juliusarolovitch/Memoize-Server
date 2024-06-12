@@ -9,6 +9,12 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from GPT import Text
 import base64
+
+import numpy as np
+import sounddevice as sd
+import soundfile as sf
+from memoize_audio_processing import memoizeAudioProccessing
+
 from finetune import FineTune
 from vision import Images, Video
 import hashlib
@@ -26,8 +32,8 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
-        self.llm = 'gpt-4o'
-        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+
+        self.audio_processor = memoizeAudioProccessing()
         self.current_text = "" #current text coming from environment
 
     def derive_iv(self, data):
@@ -37,10 +43,12 @@ class Server:
 
     def encrypt(self, data):
         iv = self.derive_iv(data)
+
         cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
         encryptor = cipher.encryptor()
         encrypted_data = encryptor.update(data.encode()) + encryptor.finalize()
         return base64.urlsafe_b64encode(iv + encrypted_data).decode()
+
     
     def decrypt(self, encrypted_data):
         encrypted_data_bytes = base64.urlsafe_b64decode(encrypted_data)
@@ -51,6 +59,7 @@ class Server:
         decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
         return decrypted_data.decode()
 
+
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
 
@@ -59,8 +68,8 @@ class Server:
             os.makedirs(self.app.config['UPLOAD_FOLDER'])
 
     def setupRoutes(self):
-        self.app.add_url_rule('/process', 'processRequest',
-                              self.processRequest, methods=['POST'])
+        self.app.add_url_rule('/process', 'processRequest', self.processRequest, methods=['POST'])
+        self.app.add_url_rule('/audio', 'audioStream', self.audioStream, methods=['POST'])
 
     def allowedFile(self, filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.app.config['ALLOWED_EXTENSIONS']
@@ -263,6 +272,34 @@ class Server:
             self.app.logger.error(f"Error generating speech: {str(e)}")
             return jsonify({"error": f"Error generating speech: {str(e)}"}), 500
 
+    def audioStream(self):
+        if not self.authenticateApiKey(request):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        try:
+            capture_duration = 10
+            self.app.logger.debug("Recording audio...")
+            audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
+            sd.wait() 
+            self.app.logger.debug("Audio recording finished.")
+
+            upload_folder = self.app.config['UPLOAD_FOLDER']
+            #upload_folder = 'test'
+            os.makedirs(upload_folder, exist_ok=True)
+            audio_file_path = os.path.join(upload_folder, 'infer.wav')
+
+            
+            sf.write(audio_file_path, audio_data, samplerate=44100)
+
+            #transcription = self.audio_processor.transcribe(audio_file_path)
+            speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
+            #print(speaker_segments)
+            return jsonify({"message": speaker_segments, "audio_file_path": audio_file_path}), 200
+
+        except Exception as e:
+            self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
+            return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
+        
     def run(self):
         self.app.run(debug=False)
 
