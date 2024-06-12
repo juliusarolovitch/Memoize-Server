@@ -10,9 +10,12 @@ play.py
 # Ignore uploads folder
 uploads/
 
+
 __pycache__
 pretrained_models
 results
 
 venv
 output
+
+
