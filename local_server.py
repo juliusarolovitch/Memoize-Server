@@ -32,8 +32,9 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
-
         self.audio_processor = memoizeAudioProccessing()
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.llm = 'gpt-4o'
         self.current_text = "" #current text coming from environment
 
     def derive_iv(self, data):
