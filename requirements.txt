@@ -138,3 +138,4 @@ whisper==1.1.10
 yarl==1.9.4
 cryptography==36.0.1
 openai==1.34.0
+opencv-python==4.10.0.82
