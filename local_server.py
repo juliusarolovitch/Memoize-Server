@@ -18,7 +18,7 @@ from memoize_audio_processing import memoizeAudioProccessing
 from finetune import FineTune
 from vision import Images, Video
 import hashlib
-
+import time
 
 load_dotenv()
 
@@ -32,8 +32,10 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
-
         self.audio_processor = memoizeAudioProccessing()
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.llm = 'gpt-4o'
+        self.current_text = "" #current text coming from environment
 
     def derive_iv(self, data):
 
@@ -221,6 +223,16 @@ class Server:
             prompt += str_to_add
 
         return prompt
+    
+    def send_prompts(self):
+        curr_text = self.current_text # or query it
+        time.sleep(1.00)
+        next_text = self.current_text
+
+        if curr_text == next_text:
+            self.generateSpeech("INPUT")  # call prompt
+        else: # keep the code running, speaker till speaking
+            pass
 
     def generateSpeech(self, request):
         try:
