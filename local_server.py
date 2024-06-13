@@ -280,10 +280,10 @@ class Server:
             
             sf.write(audio_file_path, audio_data, samplerate=44100)
 
-            #transcription = self.audio_processor.transcribe(audio_file_path)
-            speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
+            transcription = self.audio_processor.transcribe(audio_file_path)
+            #speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
             #print(speaker_segments)
-            return jsonify({"message": speaker_segments, "audio_file_path": audio_file_path}), 200
+            return jsonify({"message": transcription, "audio_file_path": audio_file_path}), 200
 
         except Exception as e:
             self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
