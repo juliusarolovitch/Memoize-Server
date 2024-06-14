@@ -30,11 +30,12 @@ class Server:
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
-        self.encryption_key = base64.urlsafe_b64decode(os.getenv('ENCRYPTION_KEY') + '===')
+        self.encryption_key = base64.urlsafe_b64decode(
+            os.getenv('ENCRYPTION_KEY') + '===')
         self.audio_processor = memoizeAudioProccessing()
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.llm = 'gpt-4o'
-        self.current_text = ""  # current text coming from environment
+        self.current_text = "" #current text coming from environment
 
     def derive_iv(self, data):
         hash_digest = hashlib.sha256(data.encode()).digest()
@@ -57,7 +58,7 @@ class Server:
         return decrypted_data.decode()
 
     def setupLogging(self):
-        logging.basicConfig(level=logging.INFO)  # Change to INFO for production
+        logging.basicConfig(level=logging.DEBUG)
 
     def setupUploadFolder(self):
         if not os.path.exists(self.app.config['UPLOAD_FOLDER']):
@@ -114,27 +115,21 @@ class Server:
         if 'files[]' not in request.files:
             self.app.logger.error("No files part in the request")
             return jsonify({"error": "No files part in the request"}), 400
-
         files = request.files.getlist('files[]')
         if len(files) == 0:
             self.app.logger.error("No files uploaded")
             return jsonify({"error": "No files uploaded"}), 400
-
         file_paths = []
         total_duration = 0
         files_encrypted = request.form.get('files_encrypted', 'false') == 'true'
-
         for file in files:
             if file and self.allowedFile(file.filename):
                 filename = file.filename
                 filepath = os.path.join(self.app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
-
                 if files_encrypted:
                     filepath = self.decrypt_file(filepath, self.encryption_key)
-
                 file_paths.append(filepath)
-
                 try:
                     audio = AudioSegment.from_file(filepath)
                     duration = len(audio) / 1000  # Convert to seconds
@@ -146,11 +141,9 @@ class Server:
             else:
                 self.app.logger.error(f"File {file.filename} is not allowed")
                 return jsonify({"error": f"File {file.filename} is not allowed"}), 400
-
         if total_duration < 30:
             self.app.logger.error("Total duration of files is less than 30 seconds")
             return jsonify({"error": "Total duration of files must be at least 30 seconds"}), 400
-
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
             client = ElevenLabs(api_key=api_key)
@@ -161,7 +154,7 @@ class Server:
             provided_voice_description = request.headers.get('voice_description')
             voices = self.getAllVoices(client)
             for voice in voices:
-                if voice.name == encrypted_voice_name:
+                if (voice.name == encrypted_voice_name):
                     return jsonify({"message": "Voice already exists", "voice": voice})
             voice = client.clone(
                 name=encrypted_voice_name,
@@ -217,7 +210,6 @@ class Server:
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
-
             # convert text to GPT response
             text = Text(text, self.openai_api_key, self.llm).to_gpt()
             audio_generator = client.generate(
@@ -253,8 +245,10 @@ class Server:
             return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
 
     def run(self):
-        self.app.run(host='0.0.0.0', port=5000, debug=False)  # Set host to 0.0.0.0 to be accessible from outside
+        self.app.run(host='0.0.0.0', port=5000, debug=False)
+
+server = Server()
+app = server.app
 
 if __name__ == '__main__':
-    server = Server()
     server.run()
