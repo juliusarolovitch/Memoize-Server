@@ -9,20 +9,22 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from GPT import Text
 import base64
-import hashlib
+
+import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from memoize_audio_processing import memoizeAudioProccessing
+
 from finetune import FineTune
 from vision import Images, Video
-from flask_cors import CORS
+import hashlib
+import time
 
 load_dotenv()
 
 class Server:
     def __init__(self):
         self.app = Flask(__name__)
-        CORS(self.app)  # Add CORS support
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
         self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc', 'mp4'}
         self.setupLogging()
@@ -55,7 +57,7 @@ class Server:
         return decrypted_data.decode()
 
     def setupLogging(self):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)  # Change to INFO for production
 
     def setupUploadFolder(self):
         if not os.path.exists(self.app.config['UPLOAD_FOLDER']):
@@ -86,17 +88,14 @@ class Server:
     def decrypt_file(self, file_path, encryption_key):
         with open(file_path, 'rb') as file:
             encrypted_data = file.read()
-
         iv = encrypted_data[:16]
         ciphertext = encrypted_data[16:]
         cipher = Cipher(algorithms.AES(encryption_key), modes.CFB(iv), backend=default_backend())
         decryptor = cipher.decryptor()
         decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
-
         decrypted_file_path = file_path.rstrip('.enc')
         with open(decrypted_file_path, 'wb') as file:
             file.write(decrypted_data)
-
         return decrypted_file_path
 
     def processRequest(self):
@@ -104,7 +103,6 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         request_type = request.headers.get('request-type')
-
         if request_type == 'ADD_USER':
             return self.addUser(request)
         elif request_type == 'INPUT':
@@ -118,7 +116,6 @@ class Server:
             return jsonify({"error": "No files part in the request"}), 400
 
         files = request.files.getlist('files[]')
-
         if len(files) == 0:
             self.app.logger.error("No files uploaded")
             return jsonify({"error": "No files uploaded"}), 400
@@ -142,7 +139,6 @@ class Server:
                     audio = AudioSegment.from_file(filepath)
                     duration = len(audio) / 1000  # Convert to seconds
                     total_duration += duration
-
                     self.app.logger.debug(f"File {filename} duration: {duration} seconds")
                 except Exception as e:
                     self.app.logger.error(f"File {filename} is corrupted or invalid: {str(e)}")
@@ -162,14 +158,11 @@ class Server:
             provided_name = request.form.get('voice')
             encrypted_voice_name = self.encrypt(f"{provided_api_key}~{provided_name}")
             self.app.logger.debug(f"Requested encrypted voice name: {encrypted_voice_name}")
-
             provided_voice_description = request.headers.get('voice_description')
-
             voices = self.getAllVoices(client)
             for voice in voices:
                 if voice.name == encrypted_voice_name:
                     return jsonify({"message": "Voice already exists", "voice": voice})
-
             voice = client.clone(
                 name=encrypted_voice_name,
                 description=provided_voice_description,
@@ -192,24 +185,20 @@ class Server:
     def format_prompt(self, user, speaker_data, video=False, video_path=None):
         prompt = "User: " + user + "."
         scene = "Unknown"
-
         if video:
             scene = self.scene_to_text(video_path)
         str_to_add = "Scene: " + scene
         prompt += str_to_add
-
         for speaker in list(speaker.keys()):
             msg = speaker_data[speaker]
-            str_to_add = speaker + ": " + msg
+            str_to_add = speaker + ": " + msg 
             prompt += str_to_add
-
         return prompt
 
     def send_prompts(self):
         curr_text = self.current_text  # or query it
         time.sleep(1.00)
         next_text = self.current_text
-
         if curr_text == next_text:
             self.generateSpeech("INPUT")  # call prompt
         else:  # keep the code running, speaker till speaking
@@ -229,19 +218,16 @@ class Server:
             if not text:
                 return jsonify({"error": "Text is required"}), 400
 
+            # convert text to GPT response
             text = Text(text, self.openai_api_key, self.llm).to_gpt()
-
             audio_generator = client.generate(
                 text=text,
                 voice=encrypted_voice_name,
                 model='eleven_multilingual_v2'
             )
-
             audio = b''.join(audio_generator)
-
             audio_io = BytesIO(audio)
             audio_io.seek(0)
-
             return send_file(audio_io, mimetype='audio/mpeg', as_attachment=True, download_name='speech.mp3')
         except Exception as e:
             self.app.logger.error(f"Error generating speech: {str(e)}")
@@ -250,30 +236,24 @@ class Server:
     def audioStream(self):
         if not self.authenticateApiKey(request):
             return jsonify({"error": "Unauthorized"}), 401
-
         try:
             capture_duration = 10
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait()
             self.app.logger.debug("Audio recording finished.")
-
             upload_folder = self.app.config['UPLOAD_FOLDER']
             os.makedirs(upload_folder, exist_ok=True)
             audio_file_path = os.path.join(upload_folder, 'infer.wav')
-
             sf.write(audio_file_path, audio_data, samplerate=44100)
-
             transcription = self.audio_processor.transcribe(audio_file_path)
             return jsonify({"message": transcription, "audio_file_path": audio_file_path}), 200
-
         except Exception as e:
             self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
             return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
 
     def run(self):
-        self.app.run(debug=False)
-
+        self.app.run(host='0.0.0.0', port=5000, debug=False)  # Set host to 0.0.0.0 to be accessible from outside
 
 if __name__ == '__main__':
     server = Server()
