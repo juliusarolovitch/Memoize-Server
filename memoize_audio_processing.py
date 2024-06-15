@@ -3,10 +3,6 @@ import whisper
 from pydub import AudioSegment
 from pyannote.audio import Pipeline
 from speechbrain.inference.speaker import SpeakerRecognition
-from transformers import AutoTokenizer
-import ssl
-import urllib.request
-import requests
 from io import BytesIO
 
 

@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_file
 import os
 import logging
 from elevenlabs.client import ElevenLabs
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -17,7 +17,7 @@ from finetune import FineTune
 from vision import Images, Video
 from flask_cors import CORS
 
-load_dotenv()
+#load_dotenv()
 
 class Server:
     def __init__(self):
