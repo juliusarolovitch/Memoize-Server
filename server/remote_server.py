@@ -2,22 +2,22 @@ from flask import Flask, request, jsonify, send_file
 import os
 import logging
 from elevenlabs.client import ElevenLabs
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from GPT import Text
+from src.GPT import Text
 import base64
 import hashlib
 import sounddevice as sd
 import soundfile as sf
-from memoize_audio_processing import memoizeAudioProccessing
-from finetune import FineTune
-from vision import Images, Video
+from src.memoize_audio_processing import memoizeAudioProccessing
+from src.finetune import FineTune
+from src.vision import Images, Video
 from flask_cors import CORS
 
-#load_dotenv()
+load_dotenv()
 
 class Server:
     def __init__(self):
