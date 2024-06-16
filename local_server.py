@@ -12,8 +12,21 @@ import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from memoize_audio_processing import memoizeAudioProccessing
+import threading 
 
 load_dotenv()
+
+class processingThread(threading.Thread):
+    def __init__(self, audio_file_path, samples_dir, output_dir): 
+        threading.Thread.__init__(self)
+        self.audio= audio_file_path
+        self.samples_dir = samples_dir
+        self.output_dir = output_dir
+        self.processor = memoizeAudioProccessing()
+
+    def run(self):
+        results = self.processor.multispeaker(self.audio, self.samples_dir, self.output_dir)
+        return
 
 class Server:
     def __init__(self):
@@ -26,6 +39,10 @@ class Server:
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
         self.audio_processor = memoizeAudioProccessing()
+        self.raw_audio_folder = os.getenv('RAW_AUDIO_FOLDER')
+        self.reference_audio_folder = os.getenv('REFERENCE_AUDIO_FOLDER')
+        self.transcriptions_folder = os.getenv('TRANSCRIPTIONS_FOLDER')
+        self.server_dir = os.getenv('SERVER_DIR')
         
     def encrypt(self, data):
         iv = os.urandom(16)
@@ -44,6 +61,7 @@ class Server:
     def setupRoutes(self):
         self.app.add_url_rule('/process', 'processRequest', self.processRequest, methods=['POST'])
         self.app.add_url_rule('/audio', 'audioStream', self.audioStream, methods=['POST'])
+        self.app.add_url_rule('/voice_sample', 'recordTrainingAudio', self.recordTrainingAudio, methods=['POST'])
 
     def allowedFile(self, filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.app.config['ALLOWED_EXTENSIONS']
@@ -207,29 +225,58 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            capture_duration = 10
+            capture_duration = 5
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait() 
             self.app.logger.debug("Audio recording finished.")
 
-            upload_folder = self.app.config['UPLOAD_FOLDER']
-            #upload_folder = 'test'
-            os.makedirs(upload_folder, exist_ok=True)
-            audio_file_path = os.path.join(upload_folder, 'infer.wav')
+            os.makedirs(self.raw_audio_folder, exist_ok=True)
+            audio_file_path = os.path.join(self.raw_audio_folder, 'results_testing.wav')
 
             
             sf.write(audio_file_path, audio_data, samplerate=44100)
+        
+            processor = processingThread(audio_file_path, self.reference_audio_folder, self.transcriptions_folder)
+            processor.start()
 
-            #transcription = self.audio_processor.transcribe(audio_file_path)
-            speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
-            #print(speaker_segments)
-            return jsonify({"message": speaker_segments, "audio_file_path": audio_file_path}), 200
+            server_dir = self.server_dir
+            try:
+                for filename in os.listdir(server_dir):
+                    if filename.endswith(".wav"):
+                        file_path = os.path.join(server_dir, filename)
+                        os.remove(file_path)
+                        print(f"Deleted: {file_path}")
+            except Exception as e:
+                print(f"Error deleting files: {e}")
+    
+            return jsonify({"message": "5s chunk recieved - success", "audio_file_path": audio_file_path}), 200
 
         except Exception as e:
             self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
             return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
-        
+    
+    def recordTrainingAudio(self):
+        if not self.authenticateApiKey(request):
+            return jsonify({"error": "Unauthorized"}), 401
+        try: 
+            capture_duration = 30
+            self.app.logger.debug("Recording audio...")
+            audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
+            sd.wait() 
+            self.app.logger.debug("Audio recording finished.")
+
+            os.makedirs(self.raw_audio_folder, exist_ok=True)
+            audio_file_path = os.path.join(self.reference_audio_folder, 'new_reference_audio.wav')
+
+            sf.write(audio_file_path, audio_data, samplerate=44100)
+
+            return jsonify({"message": "30s training sample recieved - sucess"}), 200
+        except Exception as e:
+            self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
+            return jsonify({"error": f"Error receiving or saving audio: {str(e)}"}), 500
+
+
     def run(self):
         self.app.run(debug=False)
 
