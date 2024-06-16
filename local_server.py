@@ -7,12 +7,17 @@ from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from GPT import Text
 import base64
+
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from memoize_audio_processing import memoizeAudioProccessing
 import threading 
+from finetune import FineTune
+from vision import Images, Video
+import hashlib
 
 load_dotenv()
 
@@ -32,24 +37,42 @@ class Server:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = 'uploads'
-        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc'}
+        self.app.config['ALLOWED_EXTENSIONS'] = {'mp3', 'enc', 'mp4'}
         self.setupLogging()
         self.setupUploadFolder()
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
+
         self.audio_processor = memoizeAudioProccessing()
         self.raw_audio_folder = os.getenv('RAW_AUDIO_FOLDER')
         self.reference_audio_folder = os.getenv('REFERENCE_AUDIO_FOLDER')
         self.transcriptions_folder = os.getenv('TRANSCRIPTIONS_FOLDER')
         self.server_dir = os.getenv('SERVER_DIR')
         
+    def derive_iv(self, data):
+
+        hash_digest = hashlib.sha256(data.encode()).digest()
+        return hash_digest[:16]
+    
     def encrypt(self, data):
-        iv = os.urandom(16)
+        iv = self.derive_iv(data)
+
         cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
         encryptor = cipher.encryptor()
         encrypted_data = encryptor.update(data.encode()) + encryptor.finalize()
         return base64.urlsafe_b64encode(iv + encrypted_data).decode()
+
+    
+    def decrypt(self, encrypted_data):
+        encrypted_data_bytes = base64.urlsafe_b64decode(encrypted_data)
+        iv = encrypted_data_bytes[:16]
+        ciphertext = encrypted_data_bytes[16:]
+        cipher = Cipher(algorithms.AES(self.encryption_key), modes.CFB(iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
+        return decrypted_data.decode()
+
 
     def setupLogging(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -186,6 +209,34 @@ class Server:
         except Exception as e:
             self.app.logger.error(f"Error cloning voice: {str(e)}")
             return jsonify({"error": f"Error cloning voice: {str(e)}"}), 500
+        
+    def finetuneResponses(self, training_file):
+        fntune = FineTune(training_file, self.openai_api_key)
+        self.llm = fntune.train()
+        return self.llm
+    
+    def scene_to_text(self, path):
+        # describe video feed, local
+        video = Video(path, 'Describe what you see in the video.', self.openai_api_key)
+        return video.video_prompt(frame_rate=50)
+    
+    def format_prompt(self, user, speaker_data, video = False, video_path = None):
+
+        prompt = "User: " + user + "."
+        scene = "Unknown"
+
+        if video:
+            scene = self.scene_to_text(video_path)
+        str_to_add = "Scene: " + scene
+
+        prompt += str_to_add
+
+        for speaker in list(speaker.keys()):
+            msg = speaker_data[speaker]
+            str_to_add = speaker + ": " + msg 
+            prompt += str_to_add
+
+        return prompt
 
     def generateSpeech(self, request):
         try:
@@ -203,6 +254,12 @@ class Server:
 
             if not text:
                 return jsonify({"error": "Text is required"}), 400
+            
+            #format prompt to final input format
+            #call self.format_prompt
+
+            # convert text to GPT response
+            text = Text(text, self.openai_api_key, self.llm).to_gpt()
 
             audio_generator = client.generate(
                 text=text,

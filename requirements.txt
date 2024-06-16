@@ -136,3 +136,6 @@ websockets==12.0
 Werkzeug==3.0.3
 whisper==1.1.10
 yarl==1.9.4
+cryptography==36.0.1
+cffi==1.15.0
+

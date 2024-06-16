@@ -124,6 +124,11 @@ class Server:
             if not text:
                 return jsonify({"error": "Text is required"}), 400
 
+            openai_key = os.getenv('OPENAI_API_KEY')
+            # convert text to GPT response
+            text = Text(text, openai_key).to_gpt()
+            # now text is GPT's response
+
             audio_generator = client.generate(
                 text=text,
                 voice=voice_name,
