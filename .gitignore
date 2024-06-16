@@ -1,5 +1,6 @@
 # Ignore all mp4 files
 *.mp3
+*.mp4
 
 # Ignore play.py
 play.py
