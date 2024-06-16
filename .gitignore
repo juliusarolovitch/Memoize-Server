@@ -10,13 +10,17 @@ play.py
 
 # Ignore uploads folder
 uploads/
-
-
+src/__pycache__
+__pycache__
 __pycache__
 pretrained_models
 results
 
 venv
 output
+.gitignore
+
+server/src/*.mp4
+server/src/*.mp3
 
 

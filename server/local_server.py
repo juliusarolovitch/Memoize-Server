@@ -7,16 +7,14 @@ from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from GPT import Text
+from src.GPT import Text
 import base64
-
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
-from memoize_audio_processing import memoizeAudioProccessing
-
-from finetune import FineTune
-from vision import Images, Video
+from src.memoize_audio_processing import memoizeAudioProccessing
+from src.finetune import FineTune
+from src.vision import Images, Video
 import hashlib
 import time
 
