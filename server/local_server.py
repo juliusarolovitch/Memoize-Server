@@ -9,12 +9,10 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from src.GPT import Text
 import base64
-
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
 from src.memoize_audio_processing import memoizeAudioProccessing
-
 from src.finetune import FineTune
 from src.vision import Images, Video
 import hashlib
