@@ -30,7 +30,7 @@ class processingThread(threading.Thread):
         self.processor = memoizeAudioProccessing()
 
     def run(self):
-        results = self.processor.multispeaker(self.audio, self.samples_dir, self.output_dir)
+        results = self.processor.multispeaker_silence(self.audio, self.samples_dir, self.output_dir)
         return
 
 class Server:
@@ -282,7 +282,7 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            capture_duration = 5
+            capture_duration = 10
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait() 
