@@ -194,21 +194,16 @@ class memoizeAudioProccessing:
 
         transcriptions = []
 
-        # Sort all segments to detect silence patches
         all_segments.sort()
 
-        # Add initial silence if the first segment does not start at the beginning
         if all_segments[0][0] > 0:
             transcriptions.append("<Break>")
 
         for i in range(len(all_segments)):
             start, end, speaker = all_segments[i]
-
-            # Detect silence between segments
             if i > 0 and all_segments[i-1][1] < start:
                 transcriptions.append("<Break>")
 
-            # Process speaker segments
             for segment_bytes, seg_start, seg_end in speaker_segments[speaker]:
                 transcription = self.transcribe_in_memory(segment_bytes)
                 detected_speaker = False
@@ -222,7 +217,6 @@ class memoizeAudioProccessing:
                 if not detected_speaker:
                     transcriptions.append(f"{transcription} (Unknown Speaker)")
 
-            # Detect silence at the end of the last segment
             if i == len(all_segments) - 1 and end < len(audio) / 1000:
                 transcriptions.append("<Break>")
 
