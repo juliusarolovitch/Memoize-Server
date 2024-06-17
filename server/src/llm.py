@@ -111,7 +111,7 @@ class LLM:
         return
 
 
-# add memories to postgres db
+# add memories to postgres db, run once commented code
 '''llm = LLM()
 docs = [
     Document(
@@ -157,7 +157,7 @@ docs = [
 ]
 llm.add_to_long_term_memory_db(docs)'''
 
-# generate response that involves memory call from db
+# generate response that involves memory call from db once the code above in comments was run once
 llm = LLM()
 llm.generate_stream_response("Hi my name is Rob.")
 llm.generate_stream_response("Recall my name.")
