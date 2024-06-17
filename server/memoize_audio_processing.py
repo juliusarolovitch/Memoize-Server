@@ -1,11 +1,12 @@
 import os
 import whisper
-from pydub import AudioSegment, silence
-from pydub.utils import make_chunks
+from pydub import AudioSegment
 from pyannote.audio import Pipeline
 from speechbrain.inference.speaker import SpeakerRecognition
 from transformers import AutoTokenizer
-
+import ssl
+import urllib.request
+import requests
 from io import BytesIO
 import numpy as np
 import torch
@@ -21,7 +22,7 @@ class memoizeAudioProccessing:
         )
 
     def diarize(self, input_audio_path, output_dir):
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token="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")
+        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
         diarization = pipeline(input_audio_path)
         audio = AudioSegment.from_file(input_audio_path)
 
@@ -41,7 +42,7 @@ class memoizeAudioProccessing:
         return speaker_segments
     
     def diarize_in_memory(self, input_audio_path):
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token="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")
+        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
         diarization = pipeline(input_audio_path)
         audio = AudioSegment.from_file(input_audio_path)
 
@@ -134,7 +135,7 @@ class memoizeAudioProccessing:
         return file_path
     
     def multispeaker(self, input_audio_path, reference_audio_paths, output_dir):
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token="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")
+        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
         diarization = pipeline(input_audio_path)
         audio = AudioSegment.from_file(input_audio_path)
 
@@ -174,65 +175,6 @@ class memoizeAudioProccessing:
         with open(file_path, mode) as f:
             for transcription in transcriptions:
                 f.write(transcription + "\n")
-        return file_path
-    
-    def multispeaker_silence(self, input_audio_path, reference_audio_paths, output_dir):
-        pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token="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")
-        diarization = pipeline(input_audio_path)
-        audio = AudioSegment.from_file(input_audio_path)
-
-        speaker_segments = {}
-        all_segments = []
-        for turn, _, speaker in diarization.itertracks(yield_label=True):
-            if speaker not in speaker_segments:
-                speaker_segments[speaker] = []
-            segment = audio[turn.start * 1000: turn.end * 1000]
-            segment_buffer = BytesIO()
-            segment.export(segment_buffer, format="wav")
-            speaker_segments[speaker].append((segment_buffer.getvalue(), turn.start, turn.end))
-            all_segments.append((turn.start, turn.end, speaker))
-
-        transcriptions = []
-
-        # Sort all segments to detect silence patches
-        all_segments.sort()
-
-        # Add initial silence if the first segment does not start at the beginning
-        if all_segments[0][0] > 0:
-            transcriptions.append("<Break>")
-
-        for i in range(len(all_segments)):
-            start, end, speaker = all_segments[i]
-
-            # Detect silence between segments
-            if i > 0 and all_segments[i-1][1] < start:
-                transcriptions.append("<Break>")
-
-            # Process speaker segments
-            for segment_bytes, seg_start, seg_end in speaker_segments[speaker]:
-                transcription = self.transcribe_in_memory(segment_bytes)
-                detected_speaker = False
-                for file in os.listdir(reference_audio_paths):
-                    is_target_speaker = self.speakerClass(segment_bytes, os.path.join(reference_audio_paths, file))
-                    if is_target_speaker: 
-                        transcriptions.append(f"{transcription} ({file})")
-                        detected_speaker = True
-                        break
-
-                if not detected_speaker:
-                    transcriptions.append(f"{transcription} (Unknown Speaker)")
-
-            # Detect silence at the end of the last segment
-            if i == len(all_segments) - 1 and end < len(audio) / 1000:
-                transcriptions.append("<Break>")
-
-        file_path = os.path.join(output_dir, "transcription.txt")
-        mode = 'a' if os.path.exists(file_path) else 'w'
-
-        with open(file_path, mode) as f:
-            for transcription in transcriptions:
-                f.write(transcription + "\n")
-
         return file_path
 
     def tokenize(self, transcription_file_path):
