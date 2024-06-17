@@ -24,3 +24,6 @@ output
 server/src/*.mp4
 server/src/*.mp3
 
+
+uploads
+
