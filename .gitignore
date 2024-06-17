@@ -1,5 +1,6 @@
 # Ignore all mp4 files
 *.mp3
+*.mp4
 
 # Ignore play.py
 play.py
@@ -10,9 +11,16 @@ play.py
 # Ignore uploads folder
 uploads/
 
+src/__pycache__
+__pycache__
+
 pretrained_models
 results
 
 venv
 output
-__pycache__
+.gitignore
+
+server/src/*.mp4
+server/src/*.mp3
+

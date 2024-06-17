@@ -5,6 +5,7 @@ from pydub.utils import make_chunks
 from pyannote.audio import Pipeline
 from speechbrain.inference.speaker import SpeakerRecognition
 from transformers import AutoTokenizer
+
 from io import BytesIO
 import numpy as np
 import torch

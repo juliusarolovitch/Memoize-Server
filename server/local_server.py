@@ -7,18 +7,21 @@ from io import BytesIO
 from pydub import AudioSegment
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-from GPT import Text
+from src.GPT import Text
 import base64
-
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
+from src.memoize_audio_processing import memoizeAudioProccessing
+from src.finetune import FineTune
+from src.vision import Images, Video
+import hashlib
+import time
 from memoize_audio_processing import memoizeAudioProccessing
 import threading 
 from finetune import FineTune
 from vision import Images, Video
 import hashlib
-
 load_dotenv()
 
 class processingThread(threading.Thread):
@@ -30,7 +33,8 @@ class processingThread(threading.Thread):
         self.processor = memoizeAudioProccessing()
 
     def run(self):
-        results = self.processor.multispeaker(self.audio, self.samples_dir, self.output_dir)
+        results = self.processor.multispeaker_silence(self.audio, self.samples_dir, self.output_dir)
+
         return
 
 class Server:
@@ -43,8 +47,10 @@ class Server:
         self.setupRoutes()
         self.encryption_key = base64.urlsafe_b64decode(
             os.getenv('ENCRYPTION_KEY') + '===')
-
         self.audio_processor = memoizeAudioProccessing()
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.llm = 'gpt-4o'
+        self.current_text = "" #current text coming from environment
         self.raw_audio_folder = os.getenv('RAW_AUDIO_FOLDER')
         self.reference_audio_folder = os.getenv('REFERENCE_AUDIO_FOLDER')
         self.transcriptions_folder = os.getenv('TRANSCRIPTIONS_FOLDER')
@@ -238,6 +244,17 @@ class Server:
 
         return prompt
 
+    
+    def send_prompts(self):
+        curr_text = self.current_text # or query it
+        time.sleep(1.00)
+        next_text = self.current_text
+
+        if curr_text == next_text:
+            self.generateSpeech("INPUT")  # call prompt
+        else: # keep the code running, speaker till speaking
+            pass
+
     def generateSpeech(self, request):
         try:
             api_key = os.getenv('ELEVEN_API_KEY')
@@ -282,7 +299,7 @@ class Server:
             return jsonify({"error": "Unauthorized"}), 401
 
         try:
-            capture_duration = 5
+            capture_duration = 10
             self.app.logger.debug("Recording audio...")
             audio_data = sd.rec(int(capture_duration * 44100), samplerate=44100, channels=1, dtype='int16')
             sd.wait() 
@@ -297,6 +314,11 @@ class Server:
             processor = processingThread(audio_file_path, self.reference_audio_folder, self.transcriptions_folder)
             processor.start()
 
+            transcription = self.audio_processor.transcribe(audio_file_path)
+            #speaker_segments = self.audio_processor.process(audio_file_path, 'output_dir', 'train_file')
+            #print(speaker_segments)
+            return jsonify({"message": transcription, "audio_file_path": audio_file_path}), 200
+
             server_dir = self.server_dir
             try:
                 for filename in os.listdir(server_dir):
@@ -308,6 +330,7 @@ class Server:
                 print(f"Error deleting files: {e}")
     
             return jsonify({"message": "5s chunk recieved - success", "audio_file_path": audio_file_path}), 200
+
 
         except Exception as e:
             self.app.logger.error(f"Error receiving or saving audio: {str(e)}")
