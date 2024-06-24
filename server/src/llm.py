@@ -12,7 +12,16 @@ from langchain_cohere import CohereEmbeddings
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain import hub
 load_dotenv()
+
+#LOGIC: there are two stages: 
+# Pre-training / RAG: the document with questions and answers is stored in the vector db
+# Long-term memory and responses: whenever the LLM is called, it provides a reponse and the conversation is saved
 
 class LLM:
     def __init__(self):
@@ -22,6 +31,59 @@ class LLM:
         self.model = ChatOpenAI(model="gpt-4o")
         self.with_message_history = RunnableWithMessageHistory(self.model, self.get_session_history)
 
+    def upload_personal_info_structured_rag(self, file_path, to = 'db'):
+        try:
+            with open(file_path, 'r') as file:
+                lines = file.readlines()
+                memory = ""
+                for line in lines:
+                    if line == '\n':
+                        if to == 'db':
+                            self.add_to_long_term_memory_db(memory)
+                        elif to == 'disk':
+                            self.add_to_long_term_memory_disk(memory)
+                        else:
+                            pass
+                        memory = ""
+                    else:
+                        memory += line
+        except FileNotFoundError:
+            print(f"The file at {file_path} was not found.")
+
+        return
+
+    def upload_conversations_unstructered_rag_db(self, conversations):
+
+        doc = [Document(page_content=conversations)]
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        docs = text_splitter.split_documents(doc)
+        connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"
+        collection_name = "my_docs"
+        embeddings = OpenAIEmbeddings()
+        vectorstore = PGVector(
+            embeddings=embeddings,
+            collection_name=collection_name,
+            connection=connection,
+            use_jsonb=True,
+        )
+        vectorstore.add_documents(docs)
+
+    def upload_conversations_unstructered_rag_disk(self, conversations):
+
+        doc = [Document(page_content=conversations)]
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        docs = text_splitter.split_documents(doc)
+        connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"
+        collection_name = "my_docs"
+        embeddings = OpenAIEmbeddings()
+        vectorstore = PGVector(
+            embeddings=embeddings,
+            collection_name=collection_name,
+            connection=connection,
+            use_jsonb=True,
+        )
+        vectorstore.add_documents(docs)
+
     def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
         if session_id not in self.store:
             self.store[session_id] = ChatMessageHistory()
@@ -30,16 +92,22 @@ class LLM:
     def generate_response(self, text):
 
         response = self.with_message_history.invoke(
-            [HumanMessage(content=text), SystemMessage(content="Translate the following from English into Italian")],
+            [HumanMessage(content=text), SystemMessage(content=text)],
             config=self.config,
         )
 
         return response
 
-    def generate_stream_response(self, text):
-        memories = self.query_long_term_memory_db(text)
-        message = memories + '| Prompt:' + text + "| Role: Speak in first person view as if you were the user. You are the digital twin of the user. You think the same way, you know the same things and hold the same opinions as the user. Never admit that you are ChatGPT in any circumstance."
+    def generate_stream_response(self, text, memory_storage="db"):
 
+        if memory_storage == "db":
+            memories = self.query_long_term_memory_db(text)
+        elif memory_storage == 'disk':
+            memories = self.query_long_term_memory_disk(text)
+        else:
+            memories = ""
+
+        message = memories + '| Prompt:' + text + "| Role: Speak in first person view as if you were the user. You are the digital twin of the user. You think the same way, you know the same things and hold the same opinions as the user. Never admit that you are ChatGPT in any circumstance."
         for r in self.with_message_history.stream(
             {
                 "input": [HumanMessage(content=message), 
@@ -48,19 +116,45 @@ class LLM:
             },
             config=self.config):
             print(r.content, end = "")
+
         print("\n")
+        return message
+        
         #put audio stream here
 
-    def short_term_memory_model_in_memory(self, docs, words_to_retrieve):
-        vectorstore = Chroma.from_documents(
-        docs,
-        embedding=OpenAIEmbeddings(),)
+    def add_to_long_term_memory_disk(self, text):
+        docs = [Document(page_content=text,
+                         metadata={"speakers": "", "location": "", "topic": ""})]
+        embeddings = OpenAIEmbeddings()
 
-        retriever = RunnableLambda(vectorstore.similarity_search).bind(k=1)  # select top result
-        res = retriever.batch(words_to_retrieve)
-        return res
+        # load it into Chroma
+        db = Chroma.from_documents(docs, embeddings, persist_directory="./chroma_db")
+        
+        return
     
-    def add_to_long_term_memory_db(self, docs):
+    def delete_long_term_memory_disk(self):
+        embeddings = OpenAIEmbeddings()
+        docs = [Document(page_content="",
+                         metadata={"speakers": "", "location": "", "topic": ""})]
+        db = Chroma.from_documents(docs, embeddings, persist_directory="./chroma_db")
+        db.delete_collection()
+        return
+    
+    def query_long_term_memory_disk(self, words_to_retrieve):
+        embeddings = OpenAIEmbeddings()
+        vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+        memory = 'Memories from your vector database storing past conversations: '
+        queries = vectorstore.similarity_search(words_to_retrieve, k=20)
+        for query in queries:
+            memory += (query.page_content + ' | ')
+
+        return memory
+        
+    def add_to_long_term_memory_db(self, text):
+
+        docs = [Document(page_content=text,
+                         metadata={"speakers": "", "location": "", "topic": ""})]
+
         connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"
         collection_name = "my_docs"
         embeddings = OpenAIEmbeddings()
@@ -72,7 +166,7 @@ class LLM:
             use_jsonb=True,
         )
         
-        vectorstore.add_documents(docs, ids=[doc.metadata["id"] for doc in docs])
+        vectorstore.add_documents(docs)
         
         return
         
@@ -87,15 +181,15 @@ class LLM:
             connection=connection,
             use_jsonb=True,
         )
-        #vectorstore.drop_tables()
+        
         memory = 'Memories from your vector database storing past conversations: '
-        queries = vectorstore.similarity_search(words_to_retrieve, k=3)
+        queries = vectorstore.similarity_search(words_to_retrieve, k=20)
         for query in queries:
             memory += (query.page_content + ' | ')
 
         return memory
     
-    def delete_long_term_memory_db(self, words_to_retrieve):
+    def delete_long_term_memory_db(self):
         connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"
         collection_name = "my_docs"
         embeddings = OpenAIEmbeddings()
@@ -109,56 +203,29 @@ class LLM:
         vectorstore.drop_tables()
         
         return
+    
+#####DEMO#######
 
-
-# add memories to postgres db, run once commented code
-'''llm = LLM()
-docs = [
-    Document(
-        page_content="I met my friend Benji during on my first day at CMU.",
-        metadata={"id": 1, "location": "pond", "topic": "animals"},
-    ),
-    Document(
-        page_content="I first saw my friend Julius in 15-122 at CMU in a class taught by Iliano Cervesato.",
-        metadata={"id": 2, "location": "pond", "topic": "animals"},
-    ),
-    Document(
-        page_content="Professor Iliano's favorite pasta was Spaghetti Alle Invariante.",
-        metadata={"id": 3, "location": "market", "topic": "food"},
-    ),
-    Document(
-        page_content="the market also sells fresh oranges",
-        metadata={"id": 4, "location": "market", "topic": "food"},
-    ),
-    Document(
-        page_content="the new art exhibit is fascinating",
-        metadata={"id": 5, "location": "museum", "topic": "art"},
-    ),
-    Document(
-        page_content="a sculpture exhibit is also at the museum",
-        metadata={"id": 6, "location": "museum", "topic": "art"},
-    ),
-    Document(
-        page_content="a new coffee shop opened on Main Street",
-        metadata={"id": 7, "location": "Main Street", "topic": "food"},
-    ),
-    Document(
-        page_content="the book club meets at the library",
-        metadata={"id": 8, "location": "library", "topic": "reading"},
-    ),
-    Document(
-        page_content="the library hosts a weekly story time for kids",
-        metadata={"id": 9, "location": "library", "topic": "reading"},
-    ),
-    Document(
-        page_content="a cooking class for beginners is offered at the community center in Budapest",
-        metadata={"id": 10, "location": "community center", "topic": "classes"},
-    ),
-]
-llm.add_to_long_term_memory_db(docs)'''
-
-# generate response that involves memory call from db once the code above in comments was run once
+###Initialize LLM
 llm = LLM()
-llm.generate_stream_response("Hi my name is Rob.")
-llm.generate_stream_response("Recall my name.")
-llm.generate_stream_response("Tell me all my friends that I met at CMU.")
+
+###Clean vector DB
+llm.delete_long_term_memory_disk()
+
+###RAG for structured data (example user: Bob) MAY TAKE A WHILE.
+rag_txt_file = 'rag.txt'
+personal_info = llm.upload_personal_info_structured_rag(rag_txt_file, to = 'disk')
+
+###RAG for unstructured conversations
+# llm.upload_conversations_unstructered_rag(conversations)
+
+###FINETUNE for voice and speech style
+
+###Simulate conversation
+while True:
+    conversation = ""
+    prompt = input("User: Rob. Text: ")
+    response = llm.generate_stream_response(prompt, memory_storage='disk')
+    conversation = prompt + "\n" + response
+    llm.add_to_long_term_memory_disk(conversation)
+    conversation = ""

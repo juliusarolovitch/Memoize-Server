@@ -1,0 +1,299 @@
+1. What's your full name?
+   - Bob Johnson
+
+2. Where were you born?
+   - Chicago, Illinois
+
+3. Where did you grow up?
+   - Suburbs of Chicago
+
+4. Do you have any siblings?
+   - Yes, one older sister
+
+5. What’s your favorite childhood memory?
+   - Going fishing with my dad
+
+6. What’s your favorite color?
+   - Blue
+
+7. Do you have a favorite book?
+   - "To Kill a Mockingbird" by Harper Lee
+
+8. What’s your favorite movie?
+   - "The Shawshank Redemption"
+
+9. Do you have a favorite TV show?
+   - "Breaking Bad"
+
+10. What kind of music do you like?
+    - Rock and Blues
+
+11. Do you play any instruments?
+    - Yes, the guitar
+
+12. What’s your favorite food?
+    - Pizza
+
+13. Do you have any pets?
+    - Yes, a dog named Max
+
+14. What's your favorite holiday?
+    - Christmas
+
+15. Do you prefer coffee or tea?
+    - Coffee
+
+16. What's your favorite season?
+    - Fall
+
+17. Do you prefer the beach or the mountains?
+    - Mountains
+
+18. What’s your dream vacation destination?
+    - New Zealand
+
+19. What's your favorite sport?
+    - Baseball
+
+20. Do you have a favorite sports team?
+    - Chicago Cubs
+
+21. What's your favorite hobby?
+    - Hiking
+
+22. Are you a morning person or a night owl?
+    - Morning person
+
+23. Do you have any hidden talents?
+    - I can juggle
+
+24. What's your favorite ice cream flavor?
+    - Mint chocolate chip
+
+25. Do you prefer dogs or cats?
+    - Dogs
+
+26. What’s your favorite type of cuisine?
+    - Italian
+
+27. What's your favorite restaurant?
+    - Luigi’s Pizzeria
+
+28. Do you like to cook?
+    - Yes
+
+29. What’s your favorite thing to cook?
+    - Spaghetti Bolognese
+
+30. What's your favorite drink?
+    - Lemonade
+
+31. Do you have any allergies?
+    - No
+
+32. What's your favorite dessert?
+    - Cheesecake
+
+33. What's your favorite flower?
+    - Sunflower
+
+34. Do you prefer hot weather or cold weather?
+    - Cold weather
+
+35. What's your favorite animal?
+    - Wolf
+
+36. Do you like to read?
+    - Yes
+
+37. What's your favorite genre of books?
+    - Mystery
+
+38. Do you have a favorite author?
+    - Agatha Christie
+
+39. What's your favorite quote?
+    - "The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt
+
+40. What's your favorite kind of movie?
+    - Drama
+
+41. Do you like video games?
+    - Yes
+
+42. What's your favorite video game?
+    - The Legend of Zelda: Breath of the Wild
+
+43. Do you have a favorite board game?
+    - Chess
+
+44. What's your favorite card game?
+    - Poker
+
+45. Do you like puzzles?
+    - Yes
+
+46. What's your favorite puzzle game?
+    - Sudoku
+
+47. Do you like to travel?
+    - Yes
+
+48. What's the best place you've ever visited?
+    - Japan
+
+49. Do you speak any other languages?
+    - A little bit of Spanish
+
+50. What's your favorite thing to do on weekends?
+    - Go for a hike
+
+51. Do you have a favorite app?
+    - Spotify
+
+52. What's your favorite social media platform?
+    - Instagram
+
+53. Do you prefer texting or calling?
+    - Texting
+
+54. What's your dream job?
+    - Wildlife Photographer
+
+55. Do you prefer reading physical books or e-books?
+    - Physical books
+
+56. What's your favorite board game?
+    - Settlers of Catan
+
+57. Do you have a favorite podcast?
+    - "Serial"
+
+58. What's your favorite outdoor activity?
+    - Camping
+
+59. Do you prefer a city or country life?
+    - Country life
+
+60. What's your favorite way to relax?
+    - Listening to music
+
+61. Do you like to draw or paint?
+    - Yes, I enjoy drawing
+
+62. What's your favorite type of art?
+    - Impressionism
+
+63. Do you have a favorite artist?
+    - Vincent van Gogh
+
+64. What's your favorite type of exercise?
+    - Running
+
+65. Do you like to meditate?
+    - Yes
+
+66. What's your favorite season?
+    - Fall
+
+67. Do you prefer a night in or a night out?
+    - Night in
+
+68. What's your favorite subject in school?
+    - History
+
+69. What's your least favorite subject in school?
+    - Math
+
+70. Do you have any phobias?
+    - Heights
+
+71. What's your favorite game to play with friends?
+    - Charades
+
+72. Do you like to garden?
+    - Yes
+
+73. What's your favorite plant?
+    - Fern
+
+74. Do you prefer sweet or savory foods?
+    - Savory
+
+75. What's your favorite thing about yourself?
+    - My sense of humor
+
+76. What's something you want to improve about yourself?
+    - My patience
+
+77. Do you prefer morning or evening workouts?
+    - Morning
+
+78. What's your favorite holiday tradition?
+    - Decorating the Christmas tree
+
+79. Do you like to dance?
+    - Yes
+
+80. What's your favorite type of dance?
+    - Swing
+
+81. Do you prefer working alone or in a team?
+    - In a team
+
+82. What's your favorite season?
+    - Fall
+
+83. Do you like to watch the news?
+    - Yes
+
+84. What's your favorite way to spend a rainy day?
+    - Reading a book
+
+85. Do you prefer wine or beer?
+    - Beer
+
+86. What's your favorite sport to play?
+    - Soccer
+
+87. Do you like to go to the theater?
+    - Yes
+
+88. What's your favorite type of theater performance?
+    - Musicals
+
+89. Do you prefer cats or dogs?
+    - Dogs
+
+90. Do you like to go to the beach?
+    - Yes
+
+91. What's your favorite thing to do at the beach?
+    - Surfing
+
+92. Do you have a favorite beach?
+    - Waikiki Beach
+
+93. Do you like to go to amusement parks?
+    - Yes
+
+94. What's your favorite ride at an amusement park?
+    - Roller coasters
+
+95. Do you prefer winter or summer?
+    - Winter
+
+96. What's your favorite thing to do in the winter?
+    - Skiing
+
+97. Do you like to go ice skating?
+    - Yes
+
+98. What's your favorite ice cream topping?
+    - Hot fudge
+
+99. Do you like to go to the gym?
+    - Yes
+
+100. What's your favorite type of weather?
+    - Cool and cloudy
