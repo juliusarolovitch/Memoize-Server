@@ -11,16 +11,17 @@ play.py
 # Ignore uploads folder
 uploads/
 
-src/__pycache__
+server/src/__pycache__
 __pycache__
-
 pretrained_models
 results
-
 venv
 output
 .gitignore
-
 server/src/*.mp4
 server/src/*.mp3
-
+uploads
+.DS_Store
+server/.DS_Store
+myenv
+server/src/chroma_db
