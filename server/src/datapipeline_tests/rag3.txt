@@ -1,0 +1,98 @@
+68. What's your favorite subject in school?
+    - History
+
+69. What's your least favorite subject in school?
+    - Math
+
+70. Do you have any phobias?
+    - Heights
+
+71. What's your favorite game to play with friends?
+    - Charades
+
+72. Do you like to garden?
+    - Yes
+
+73. What's your favorite plant?
+    - Fern
+
+74. Do you prefer sweet or savory foods?
+    - Savory
+
+75. What's your favorite thing about yourself?
+    - My sense of humor
+
+76. What's something you want to improve about yourself?
+    - My patience
+
+77. Do you prefer morning or evening workouts?
+    - Morning
+
+78. What's your favorite holiday tradition?
+    - Decorating the Christmas tree
+
+79. Do you like to dance?
+    - Yes
+
+80. What's your favorite type of dance?
+    - Swing
+
+81. Do you prefer working alone or in a team?
+    - In a team
+
+82. What's your favorite season?
+    - Fall
+
+83. Do you like to watch the news?
+    - Yes
+
+84. What's your favorite way to spend a rainy day?
+    - Reading a book
+
+85. Do you prefer wine or beer?
+    - Beer
+
+86. What's your favorite sport to play?
+    - Soccer
+
+87. Do you like to go to the theater?
+    - Yes
+
+88. What's your favorite type of theater performance?
+    - Musicals
+
+89. Do you prefer cats or dogs?
+    - Dogs
+
+90. Do you like to go to the beach?
+    - Yes
+
+91. What's your favorite thing to do at the beach?
+    - Surfing
+
+92. Do you have a favorite beach?
+    - Waikiki Beach
+
+93. Do you like to go to amusement parks?
+    - Yes
+
+94. What's your favorite ride at an amusement park?
+    - Roller coasters
+
+95. Do you prefer winter or summer?
+    - Winter
+
+96. What's your favorite thing to do in the winter?
+    - Skiing
+
+97. Do you like to go ice skating?
+    - Yes
+
+98. What's your favorite ice cream topping?
+    - Hot fudge
+
+99. Do you like to go to the gym?
+    - Yes
+
+100. What's your favorite type of weather?
+    - Cool and cloudy

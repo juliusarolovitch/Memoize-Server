@@ -1,0 +1,101 @@
+34. Do you prefer hot weather or cold weather?
+    - Cold weather
+
+35. What's your favorite animal?
+    - Wolf
+
+36. Do you like to read?
+    - Yes
+
+37. What's your favorite genre of books?
+    - Mystery
+
+38. Do you have a favorite author?
+    - Agatha Christie
+
+39. What's your favorite quote?
+    - "The only limit to our realization of tomorrow is our doubts of today." - Franklin D. Roosevelt
+
+40. What's your favorite kind of movie?
+    - Drama
+
+41. Do you like video games?
+    - Yes
+
+42. What's your favorite video game?
+    - The Legend of Zelda: Breath of the Wild
+
+43. Do you have a favorite board game?
+    - Chess
+
+44. What's your favorite card game?
+    - Poker
+
+45. Do you like puzzles?
+    - Yes
+
+46. What's your favorite puzzle game?
+    - Sudoku
+
+47. Do you like to travel?
+    - Yes
+
+48. What's the best place you've ever visited?
+    - Japan
+
+49. Do you speak any other languages?
+    - A little bit of Spanish
+
+50. What's your favorite thing to do on weekends?
+    - Go for a hike
+
+51. Do you have a favorite app?
+    - Spotify
+
+52. What's your favorite social media platform?
+    - Instagram
+
+53. Do you prefer texting or calling?
+    - Texting
+
+54. What's your dream job?
+    - Wildlife Photographer
+
+55. Do you prefer reading physical books or e-books?
+    - Physical books
+
+56. What's your favorite board game?
+    - Settlers of Catan
+
+57. Do you have a favorite podcast?
+    - "Serial"
+
+58. What's your favorite outdoor activity?
+    - Camping
+
+59. Do you prefer a city or country life?
+    - Country life
+
+60. What's your favorite way to relax?
+    - Listening to music
+
+61. Do you like to draw or paint?
+    - Yes, I enjoy drawing
+
+62. What's your favorite type of art?
+    - Impressionism
+
+63. Do you have a favorite artist?
+    - Vincent van Gogh
+
+64. What's your favorite type of exercise?
+    - Running
+
+65. Do you like to meditate?
+    - Yes
+
+66. What's your favorite season?
+    - Fall
+
+67. Do you prefer a night in or a night out?
+    - Night in
