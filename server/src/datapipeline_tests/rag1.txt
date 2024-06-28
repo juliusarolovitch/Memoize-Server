@@ -1,0 +1,99 @@
+1. What's your full name?
+   - Bob Johnson
+
+2. Where were you born?
+   - Chicago, Illinois
+
+3. Where did you grow up?
+   - Suburbs of Chicago
+
+4. Do you have any siblings?
+   - Yes, one older sister
+
+5. What’s your favorite childhood memory?
+   - Going fishing with my dad
+
+6. What’s your favorite color?
+   - Blue
+
+7. Do you have a favorite book?
+   - "To Kill a Mockingbird" by Harper Lee
+
+8. What’s your favorite movie?
+   - "The Shawshank Redemption"
+
+9. Do you have a favorite TV show?
+   - "Breaking Bad"
+
+10. What kind of music do you like?
+    - Rock and Blues
+
+11. Do you play any instruments?
+    - Yes, the guitar
+
+12. What’s your favorite food?
+    - Pizza
+
+13. Do you have any pets?
+    - Yes, a dog named Max
+
+14. What's your favorite holiday?
+    - Christmas
+
+15. Do you prefer coffee or tea?
+    - Coffee
+
+16. What's your favorite season?
+    - Fall
+
+17. Do you prefer the beach or the mountains?
+    - Mountains
+
+18. What’s your dream vacation destination?
+    - New Zealand
+
+19. What's your favorite sport?
+    - Baseball
+
+20. Do you have a favorite sports team?
+    - Chicago Cubs
+
+21. What's your favorite hobby?
+    - Hiking
+
+22. Are you a morning person or a night owl?
+    - Morning person
+
+23. Do you have any hidden talents?
+    - I can juggle
+
+24. What's your favorite ice cream flavor?
+    - Mint chocolate chip
+
+25. Do you prefer dogs or cats?
+    - Dogs
+
+26. What’s your favorite type of cuisine?
+    - Italian
+
+27. What's your favorite restaurant?
+    - Luigi’s Pizzeria
+
+28. Do you like to cook?
+    - Yes
+
+29. What’s your favorite thing to cook?
+    - Spaghetti Bolognese
+
+30. What's your favorite drink?
+    - Lemonade
+
+31. Do you have any allergies?
+    - No
+
+32. What's your favorite dessert?
+    - Cheesecake
+
+33. What's your favorite flower?
+    - Sunflower
+
